@@ -5,7 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from "uuid";
-/** Handle dotenv configs before importing any other modules */
+
 dotenv.config();
 
 puppeteer.use(StealthPlugin());
@@ -18,6 +18,19 @@ const browser = await puppeteer.launch({
 });
 
 const newPage = await browser.newPage();
+
+setInterval(() => {
+
+	newPage.evaluate(() => {
+
+		const textField = window.document.querySelector(`[placeholder="Send a message..."]`);
+
+		textField.click('Keepalive...');
+
+		console.log('Clicked text field...')
+	})
+
+}, 5000);
 
 await newPage.goto('https://chat.openai.com/chat');
 
@@ -84,6 +97,10 @@ server.post('/conversations', async (req, res) => {
 					'accept': "text/event-stream",
 					'content-type': "application/json",
 				}
+			})
+
+			console.log({
+				response
 			})
 
 			let promptResponse = '';

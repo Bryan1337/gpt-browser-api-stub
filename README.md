@@ -1,6 +1,8 @@
 
 # Whatsapp bot which responds with actual chatGPT responses
 
+# Bot
+
 ## How to set up
 
 Copy the .env.example file to .env and fill in the values
@@ -10,7 +12,7 @@ Copy the .env.example file to .env and fill in the values
 	- Using an actual phone which runs whatsapp and has the actual number linked to it
 	- Using a virtual environment which you can use to emulate a virtual camera and scan the QR codes using the virtual camera
 	- Probably some other methods I'm missing
-- `REVERSE_PROXY_URL` The reverse proxy endpoint for bypassing cloudflare authentication (See https://github.com/transitive-bullshit/chatgpt-api#readme for more info)
+- `API_URL` The api endpoint. Requires some params such as  `accessToken`, `prompt`, `gptConversationId` and`gptParentMessageId`
 
 ## Usage
 
@@ -27,3 +29,7 @@ Responses are queued if there are multiple requests simultaneously. The bot will
 The responses are identical to a chatGPT window (as it practically IS chatGPT) and will keep track of values such as `whatsappIdentifier` (message source), `gptConversationId` (The conversation thread) and the `gptParentMessageId` (the last message chain). The `gptParentMessageId` is updated after each message to make sure messages are treated as responses to the last sent chatGPT response.
 
 Since we're using an external proxy it is possible that 429 status codes (Too many requests) might be returned from a request. In this case the bot will react with a "❌" to the original message and alert the user of the status accordingly.
+
+### Server
+
+...

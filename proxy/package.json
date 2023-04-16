@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "local": "node src/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -15,7 +15,7 @@
     "uuid": "^9.0.0"
   },
   "keywords": [],
-  "author": "",
+  "author": "Bryan Overduin",
   "license": "ISC",
   "devDependencies": {
     "dotenv": "^16.0.3"

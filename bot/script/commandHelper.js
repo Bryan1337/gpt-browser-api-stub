@@ -79,7 +79,7 @@ const getContextCommand = (id) => {
 
 	if(context) {
 
-		return `Current context is:\n\n ${context}`;
+		return `Current context is:\n\n${context}`;
 	}
 
 	return 'No context was found 🤔';

@@ -16,7 +16,7 @@ export const getChatGPTResponse = async (prompt, conversationDetails = {}) => {
 
 	logInfo('Querying prompt:', prompt);
 
-	const response = await fetch(process.env.REVERSE_PROXY_URL, {
+	const response = await fetch(process.env.API_URL, {
 		method: 'POST',
 		body: JSON.stringify({
 			accessToken: process.env.ACCESS_TOKEN,
