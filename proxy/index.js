@@ -19,18 +19,6 @@ const browser = await puppeteer.launch({
 
 const newPage = await browser.newPage();
 
-setInterval(() => {
-
-	newPage.evaluate(() => {
-
-		const textField = window.document.querySelector(`[placeholder="Send a message..."]`);
-
-		textField.click('Keepalive...');
-
-		console.log('Clicked text field...')
-	})
-
-}, 5000);
 
 await newPage.goto('https://chat.openai.com/chat');
 
@@ -137,6 +125,16 @@ server.post('/conversations', async (req, res) => {
 				}
 			}
 
+			if (response.status === 413) {
+
+				res.json({
+					error: 'Conversation too long',
+					code: 413,
+				})
+
+				return;
+			}
+
 			const readableStream = response.body;
 			// Create a TextDecoder to decode the received data
 			const decoder = new TextDecoder();
@@ -183,7 +181,7 @@ server.post('/conversations', async (req, res) => {
 			error
 		})
 
-		res.status(500).json({
+		res.json({
 			error: error.message,
 		});
 	}

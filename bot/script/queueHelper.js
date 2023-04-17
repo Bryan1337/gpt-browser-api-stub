@@ -60,7 +60,7 @@ export const addMessageToQueue = (message) => {
 
 			const requestDuration = (responseEndTime - responseStartTime);
 
-			setConversationDetails(message.from, conversationDetails.conversationId, response.messageId);
+			setConversationDetails(message.from, response.conversationId, response.messageId);
 
 			await message.reply(`🤖 ${response.promptResponse}`);
 
@@ -68,7 +68,7 @@ export const addMessageToQueue = (message) => {
 
 			await chat.clearState();
 
-			logInfo(`Request handled in ${requestDuration / 1000} seconds. Response length: ${response.promptResponse.length} characters`);
+			logInfo(`Request handled in ${requestDuration / 1000} seconds. Response length: ${response?.promptResponse?.length} characters`);
 
 			storePrompt(
 				message._data.notifyName,
@@ -82,14 +82,7 @@ export const addMessageToQueue = (message) => {
 
 			logError(error);
 
-			if (error.statusCode === 429) {
-
-				await message.reply(`🤖 Sorry, Too many requests, try again in a bit 😅.`);
-
-			} else {
-
-				await message.reply('🤖 Sorry, GPTBoy is having some issues at the moment 😫.');
-			}
+			await message.reply(`🤖 ${error.message}`);
 
 			await message.react('❌');
 		}

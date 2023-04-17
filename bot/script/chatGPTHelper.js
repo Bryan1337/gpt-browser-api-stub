@@ -1,9 +1,13 @@
 import { logInfo } from './logHelper.js';
 import { getContext } from './contextHelper.js';
+import { getResponse } from './requestHelper.js';
+import dotenv from 'dotenv';
+/** Handle dotenv configs before importing any other modules */
+dotenv.config();
 
 export const getChatGPTResponse = async (prompt, conversationDetails = {}) => {
 
-	const { gptConversationId, gptParentMessageId, whatsappIdentifier } = conversationDetails;
+	const { whatsappIdentifier } = conversationDetails
 
 	const context = getContext(whatsappIdentifier);
 
@@ -16,27 +20,5 @@ export const getChatGPTResponse = async (prompt, conversationDetails = {}) => {
 
 	logInfo('Querying prompt:', prompt);
 
-	const response = await fetch(process.env.API_URL, {
-		method: 'POST',
-		body: JSON.stringify({
-			accessToken: process.env.ACCESS_TOKEN,
-			gptConversationId,
-			gptParentMessageId,
-			prompt,
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	})
-
-	const responseData = await response.json();
-
-	if(responseData.error) {
-
-		logInfo('Error:', responseData.error);
-
-		throw new Error(responseData.error);
-	}
-
-	return responseData;
+	return await getResponse(prompt, conversationDetails);
 }

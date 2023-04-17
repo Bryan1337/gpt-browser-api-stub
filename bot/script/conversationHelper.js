@@ -32,12 +32,21 @@ export const storePrompt = (displayName, id, prompt, response, requestDuration) 
 	fs.writeFileSync(promptMapPath, JSON.stringify(promptMap, null, 2));
 }
 
-export const setConversationDetails = (chatId, conversationId, parentMessageId) => {
+export const clearConversationDetails = (chatId) => {
 
-	if(!chatId || !conversationId || !parentMessageId) {
+	if(!chatId) {
 
 		return false;
 	}
+
+	const conversations = fs.readFileSync(conversationFilePath);
+
+	const conversationMap = JSON.parse(conversations);
+}
+
+
+
+export const setConversationDetails = (chatId, conversationId, parentMessageId) => {
 
 	const conversations = fs.readFileSync(conversationFilePath);
 
