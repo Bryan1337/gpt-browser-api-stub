@@ -1,4 +1,4 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 
 const getWhatsappClient = () => {
 
@@ -7,6 +7,12 @@ const getWhatsappClient = () => {
 	});
 }
 
+const getMessageMediaFromFilePath = (path) => {
+
+	return MessageMedia.fromFilePath(path);
+}
+
 module.exports = {
 	getWhatsappClient,
+	getMessageMediaFromFilePath,
 }

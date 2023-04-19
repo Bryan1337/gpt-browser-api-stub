@@ -3,6 +3,44 @@ import dotenv from 'dotenv';
 /** Handle dotenv configs before importing any other modules */
 dotenv.config();
 
+export const getLocalResponse = async ( prompt, conversationDetails ) => {
+
+	const { gptConversationId, gptParentMessageId } = conversationDetails;
+
+	const response = await fetch(process.env.API_URL, {
+		method: 'POST',
+		body: JSON.stringify({
+			prompt,
+			accessToken: process.env.ACCESS_TOKEN,
+			gptConversationId,
+			gptParentMessageId,
+		}),
+		headers: {
+			'content-type': "application/json",
+		}
+	});
+
+	const responseJson = await response.json();
+
+	if (responseJson.error) {
+
+		if (responseJson.code === 413) {
+
+			throw new Error(`Sorry, conversation too long, tell someone to clear it 😅.`);
+		}
+
+		if (responseJson.code === 429) {
+
+			throw new Error(`Sorry, Too many requests, try again in a bit 😅.`);
+		}
+
+		throw new Error(responseJson.error);
+	}
+
+	return responseJson;
+}
+
+
 export const getResponse = async (prompt, conversationDetails) => {
 
 	const { gptConversationId, gptParentMessageId } = conversationDetails;
@@ -38,11 +76,7 @@ export const getResponse = async (prompt, conversationDetails) => {
 		}
 	})
 
-	console.log({
-		response
-	})
-
-	if (response.status === 413) {
+	if (response.code === 413) {
 
 		console.log({
 			response
@@ -51,7 +85,7 @@ export const getResponse = async (prompt, conversationDetails) => {
 		throw new Error(`Sorry, conversation too long, tell someone to clear it 😅.`);
 	}
 
-	if (response.status === 429) {
+	if (response.code === 429) {
 
 		console.log({
 			response

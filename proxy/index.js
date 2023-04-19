@@ -19,8 +19,14 @@ const browser = await puppeteer.launch({
 
 const newPage = await browser.newPage();
 
+let chatUrl = 'https://chat.openai.com/chat';
 
-await newPage.goto('https://chat.openai.com/chat');
+if(process.env.CONVERSATION_ID) {
+
+	chatUrl = `https://chat.openai.com/c/${process.env.CONVERSATION_ID}`;
+}
+
+await newPage.goto(chatUrl);
 
 const server = express();
 
@@ -48,22 +54,69 @@ server.use((err, req, res, next) => {
 	next();
 });
 
+const defaultDelay = 5 * 60e3;
+
+const getRandomInterval = () => {
+
+	return defaultDelay + Math.floor(Math.random() * defaultDelay);
+}
+
+let randomInterval = getRandomInterval();
+
+setInterval(async () => {
+
+	await newPage.evaluate(() => {
+
+		// const refreshButton = window.document.querySelector('.btn-neutral') || window.document.querySelector('.btn-primary');
+		window.location.reload();
+		// refreshButton.click();
+	});
+
+	randomInterval = getRandomInterval();
+
+}, randomInterval);
+
+const accessToken = await newPage.evaluate(async () => {
+
+	const response = await fetch('https://chat.openai.com/api/auth/session');
+
+	const jsonResponse = await response.json();
+
+	return jsonResponse.accessToken;
+})
+
 server.post('/conversations', async (req, res) => {
 
 	try {
 
 		const newMessageId = uuidv4();
 
-		const evaluationResponse = await newPage.evaluate(async ({ body, newMessageId, }) => {
+		const newParentMessageId = uuidv4();
 
-			const { accessToken, prompt, gptConversationId, gptParentMessageId } = body;
+		const evaluationResponse = await newPage.evaluate(async ({ body, newMessageId, newParentMessageId, accessToken }) => {
+
+			const { prompt, gptConversationId, gptParentMessageId } = body;
+
+			let parentMessageId = gptParentMessageId || newParentMessageId;
+
+			if (gptConversationId) {
+
+				const conversationResponse = await fetch(`https://chat.openai.com/backend-api/conversation/${gptConversationId}`, {
+					method: 'GET',
+					headers: {
+						'authorization': `Bearer ${accessToken}`,
+					}
+				});
+
+				const conversationJson = await conversationResponse.json();
+
+				parentMessageId = conversationJson.current_node;
+			}
 
 			const response = await fetch('https://chat.openai.com/backend-api/conversation', {
 				method: 'POST',
 				body: JSON.stringify({
 					action: "next",
-					parent_message_id: gptParentMessageId,
-					conversation_id: gptConversationId,
 					messages: [
 						{
 							id: newMessageId,
@@ -76,8 +129,11 @@ server.post('/conversations', async (req, res) => {
 							}
 						}
 					],
+					conversation_id: gptConversationId,
+					parent_message_id: parentMessageId,
 					model: 'text-davinci-002-render-sha',
 					timezone_offset_min: -120,
+					variant_purpose: 'none',
 				}),
 				headers: {
 					'authorization': `Bearer ${accessToken}`,
@@ -87,9 +143,9 @@ server.post('/conversations', async (req, res) => {
 				}
 			})
 
-			console.log({
-				response
-			})
+			let conversationId = gptConversationId;
+
+			let messageId = newMessageId;
 
 			let promptResponse = '';
 
@@ -109,9 +165,17 @@ server.post('/conversations', async (req, res) => {
 						return;
 					}
 
+					messageId = data.message.id;
+
+					conversationId = data.conversation_id;
+
 					promptResponse = data.message.content.parts[0];
 
 				} catch (error) {
+
+					console.log({
+						error
+					})
 
 					const chunks = chunk.split('\n\n').filter(Boolean);
 					// Sometimes multiple chunks are received at once
@@ -127,12 +191,18 @@ server.post('/conversations', async (req, res) => {
 
 			if (response.status === 413) {
 
-				res.json({
+				return {
 					error: 'Conversation too long',
 					code: 413,
-				})
+				}
+			}
 
-				return;
+			if(response.status === 429) {
+
+				return {
+					error: 'Too many requests',
+					code: 429,
+				}
 			}
 
 			const readableStream = response.body;
@@ -165,12 +235,15 @@ server.post('/conversations', async (req, res) => {
 
 			return {
 				promptResponse: finalResponse,
-				messageId: newMessageId,
+				messageId,
+				conversationId,
 			}
 
 		}, {
 			body: req.body,
 			newMessageId,
+			newParentMessageId,
+			accessToken,
 		});
 
 		res.json(evaluationResponse);

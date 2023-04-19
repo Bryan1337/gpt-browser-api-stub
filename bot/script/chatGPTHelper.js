@@ -1,6 +1,6 @@
 import { logInfo } from './logHelper.js';
 import { getContext } from './contextHelper.js';
-import { getResponse } from './requestHelper.js';
+import { getLocalResponse, getResponse } from './requestHelper.js';
 import dotenv from 'dotenv';
 /** Handle dotenv configs before importing any other modules */
 dotenv.config();
@@ -20,5 +20,6 @@ export const getChatGPTResponse = async (prompt, conversationDetails = {}) => {
 
 	logInfo('Querying prompt:', prompt);
 
-	return await getResponse(prompt, conversationDetails);
+	return await getLocalResponse(prompt, conversationDetails);
+	// return await getResponse(prompt, conversationDetails);
 }
