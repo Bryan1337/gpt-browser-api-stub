@@ -4,7 +4,7 @@ import { sanitizePrompt } from './messageHelper.js';
 import { logError, logInfo } from './logHelper.js';
 import WAWebJS from 'whatsapp-web.js';
 import { isLooping } from './loopHelper.js';
-import { getAudioData, getAudioFilePath } from './ttsHelper.js';
+import { getAudioData, getAudioFilePath, removeAudioFile } from './ttsHelper.js';
 import { getMessageMediaFromFilePath } from './whatsappHelper.cjs';
 import Queue from 'queue';
 
@@ -66,16 +66,20 @@ const handleQueueItem = async (message, attempt = 1) => {
 
 		const audioData = await getAudioData(remoteId);
 
-		let reply = `🤖 ${response.promptResponse}`;
-
 		if (audioData) {
 
 			const audio = await getAudioFilePath(response.promptResponse, audioData.language);
 
-			reply = getMessageMediaFromFilePath(audio);
-		}
+			const audioReply = getMessageMediaFromFilePath(audio);
 
-		await message.reply(reply);
+			await message.reply(audioReply);
+
+			await removeAudioFile(audio);
+
+		} else {
+
+			await message.reply(`🤖 ${response.promptResponse}`);
+		}
 
 		await message.react('✅');
 

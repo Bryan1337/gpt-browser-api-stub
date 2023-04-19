@@ -143,7 +143,7 @@ const enableAudioCommand = (id, text) => {
 
 	enableAudioResponse(id, language.trim());
 
-	return `Audio responses enabled in language "${language}"👌`;
+	return `Audio responses enabled in language *${`${language.trim()}`.toUpperCase()}}* 👌`;
 }
 
 const disableAudioCommand = (id) => {

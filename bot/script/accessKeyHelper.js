@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-
 const accessKeyMapPath = `${process.cwd()}${process.env.ACCESS_KEYS_PATH}`;
 
 createFileIfNotExists(accessKeyMapPath);
