@@ -17,7 +17,7 @@ const browser = await puppeteer.launch({
 	args: ['--auto-open-devtools-for-tabs']
 });
 
-const newPage = await browser.newPage();
+const [ newPage ] = await browser.pages();
 
 let chatUrl = 'https://chat.openai.com/chat';
 
@@ -26,7 +26,7 @@ if(process.env.CONVERSATION_ID) {
 	chatUrl = `https://chat.openai.com/c/${process.env.CONVERSATION_ID}`;
 }
 
-await newPage.goto(chatUrl);
+await newPage.goto(chatUrl, { waitUntil: 'networkidle2'});
 
 const server = express();
 
@@ -54,63 +54,107 @@ server.use((err, req, res, next) => {
 	next();
 });
 
-const defaultDelay = 5 * 60e3;
 
-const getRandomInterval = () => {
 
-	return defaultDelay + Math.floor(Math.random() * defaultDelay);
-}
 
-let randomInterval = getRandomInterval();
-
-setInterval(async () => {
+setTimeout(async () => {
 
 	await newPage.evaluate(() => {
-
-		// const refreshButton = window.document.querySelector('.btn-neutral') || window.document.querySelector('.btn-primary');
+		// Reload the page every 5-10 minutes to prevent any tokens from expiring
 		window.location.reload();
-		// refreshButton.click();
 	});
 
-	randomInterval = getRandomInterval();
+}, getRandomValueBetween(5 * 60e3, 10 * 60e3))
 
-}, randomInterval);
+const getAccessToken = async () => {
 
-const accessToken = await newPage.evaluate(async () => {
+	return await newPage.evaluate(async () => {
 
-	const response = await fetch('https://chat.openai.com/api/auth/session');
+		const response = await fetch('https://chat.openai.com/api/auth/session');
 
-	const jsonResponse = await response.json();
+		try {
 
-	return jsonResponse.accessToken;
-})
+			const jsonResponse = await response.json();
+
+			return jsonResponse.accessToken;
+
+		} catch (error) {
+
+			console.log({
+				error
+			})
+
+			return false;
+		}
+	})
+}
+
+let accessToken;
+
+let accessTokenFetchAttempt = 1;
+
+const handleAccessToken = async () => {
+
+	console.log(`Attempt ${accessTokenFetchAttempt} to fetch access token...`);
+
+	accessToken = await getAccessToken();
+
+	if (!accessToken) {
+
+		setTimeout(async () => {
+
+			await handleAccessToken();
+
+			accessTokenFetchAttempt++;
+
+		}, 3000);
+	}
+}
+
+handleAccessToken();
 
 server.post('/conversations', async (req, res) => {
 
 	try {
 
-		const newMessageId = uuidv4();
-
-		const newParentMessageId = uuidv4();
-
 		const evaluationResponse = await newPage.evaluate(async ({ body, newMessageId, newParentMessageId, accessToken }) => {
 
-			const { prompt, gptConversationId, gptParentMessageId } = body;
+			const { prompt, gptConversationId } = body;
 
-			let parentMessageId = gptParentMessageId || newParentMessageId;
+			let parentMessageId = newParentMessageId;
 
 			if (gptConversationId) {
 
-				const conversationResponse = await fetch(`https://chat.openai.com/backend-api/conversation/${gptConversationId}`, {
-					method: 'GET',
-					headers: {
-						'authorization': `Bearer ${accessToken}`,
+				try {
+
+					const conversationResponse = await fetch(`https://chat.openai.com/backend-api/conversation/${gptConversationId}`, {
+						method: 'GET',
+						headers: {
+							'authorization': `Bearer ${accessToken}`,
+						}
+					});
+
+					if (conversationResponse.status === 403) {
+
+						window.location.reload();
+
+						return {
+							error: 'Forbidden',
+							code: 403,
+						}
 					}
-				});
 
-				const conversationJson = await conversationResponse.json();
+					const conversationJson = await conversationResponse.json();
 
-				parentMessageId = conversationJson.current_node;
+					parentMessageId = conversationJson.current_node;
+
+
+				} catch (error) {
+
+					console.log({
+						error
+					})
+				}
 			}
 
 			const response = await fetch('https://chat.openai.com/backend-api/conversation', {
@@ -148,6 +192,32 @@ server.post('/conversations', async (req, res) => {
 			let messageId = newMessageId;
 
 			let promptResponse = '';
+
+			if(response.status === 403) {
+
+				window.location.reload();
+
+				return {
+					error: 'Forbidden',
+					code: 403,
+				}
+			}
+
+			if (response.status === 413) {
+
+				return {
+					error: 'Conversation too long',
+					code: 413,
+				}
+			}
+
+			if(response.status === 429) {
+
+				return {
+					error: 'Too many requests',
+					code: 429,
+				}
+			}
 
 			const handleChunk = (chunk) => {
 
@@ -189,22 +259,6 @@ server.post('/conversations', async (req, res) => {
 				}
 			}
 
-			if (response.status === 413) {
-
-				return {
-					error: 'Conversation too long',
-					code: 413,
-				}
-			}
-
-			if(response.status === 429) {
-
-				return {
-					error: 'Too many requests',
-					code: 429,
-				}
-			}
-
 			const readableStream = response.body;
 			// Create a TextDecoder to decode the received data
 			const decoder = new TextDecoder();
@@ -241,8 +295,8 @@ server.post('/conversations', async (req, res) => {
 
 		}, {
 			body: req.body,
-			newMessageId,
-			newParentMessageId,
+			newMessageId: uuidv4(),
+			newParentMessageId: uuidv4(),
 			accessToken,
 		});
 
@@ -262,5 +316,5 @@ server.post('/conversations', async (req, res) => {
 
 server.listen(process.env.PORT, () => {
 
-	console.log(`Proxy server running on port ${process.env.PORT}`);
+	console.log(`Passthrough API running on port ${process.env.PORT}`);
 });

@@ -141,9 +141,9 @@ const enableAudioCommand = (id, text) => {
 
 	const [language] = splitMessage;
 
-	enableAudioResponse(id, language.trim());
+	enableAudioResponse(id, `${language}`.trim());
 
-	return `Audio responses enabled in language *${`${language.trim()}`.toUpperCase()}}* 👌`;
+	return `Audio responses enabled in language *${`${language}`.trim().toUpperCase()}}* 👌`;
 }
 
 const disableAudioCommand = (id) => {

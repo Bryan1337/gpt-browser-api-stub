@@ -14,7 +14,7 @@ const queue = new Queue({
 	timeout: (60 * 2 * 1000),
 });
 
-const maxAttempts = 3;
+const maxAttempts = 5;
 const itemAttemptDelay = 3000;
 
 let messageProxy = null;

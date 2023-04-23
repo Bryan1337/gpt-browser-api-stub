@@ -5,7 +5,7 @@ dotenv.config();
 
 export const getLocalResponse = async ( prompt, conversationDetails ) => {
 
-	const { gptConversationId, gptParentMessageId } = conversationDetails;
+	const { gptConversationId } = conversationDetails;
 
 	const response = await fetch(process.env.API_URL, {
 		method: 'POST',
@@ -13,7 +13,6 @@ export const getLocalResponse = async ( prompt, conversationDetails ) => {
 			prompt,
 			accessToken: process.env.ACCESS_TOKEN,
 			gptConversationId,
-			gptParentMessageId,
 		}),
 		headers: {
 			'content-type': "application/json",
