@@ -27,14 +27,27 @@ Responses are queued if there are multiple requests simultaneously. The bot will
 
 The responses are identical to a chatGPT window (as it practically IS chatGPT) and will keep track of conversations based on a `gptConversationId` to make sure each group or conversation retains their own message chain.
 
+Use !help to get a list of all the commands. You can enable/disable certain commands by adjusting the `getCommands()` function in `commandHelper.js`
+
+### Features
+
+Following is a global list of all features:
+
+- Whitelist support
+- Conversation tracking
+- Conversation contexts
+- Audio responses
+- Image responses (You'll have to supply your own playgroundai.com API key)
+- Video responses (You'll have to supply your own runwayml.com API key(s))
+- Looped conversations (Wouldn't recommend turning this on. ChatGPT will start talking to itself and responses will get less and less verbose over time.)
 # Server
 
 ## Usage
 
 ### Puppeteer
 
-The server works as a mock chatGPT session where chromium runs puppeteer and accessess the chatGPT backend API using the javascript console. The reason this works is because we're sending requests from the chat.openai.com domain.
+The server works as a mock chatGPT session where chromium runs puppeteer and accessess the chatGPT backend API using the javascript console. The reason this works is because we're sending requests from the `chat.openai.com` domain.
 
 ### Authentication
 
-Initially you'll have to log in using a chat.openai.com account but after that re-logging in should only be required once the server isn't running for some amount of time (should be around ~ 30 mins).
+Initially you'll have to log in using a `chat.openai.com` account but after that re-logging in should only be required once the server isn't running for some amount of time (should be around ~ 30 mins).
