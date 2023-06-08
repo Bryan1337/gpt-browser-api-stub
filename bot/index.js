@@ -28,11 +28,20 @@ client.on('authenticated', () => {
 
 client.on('message', async message => {
 
-	const commandResponse = getCommandResponse(message);
+	const commandResponse = await getCommandResponse(message);
 
 	if (Boolean(commandResponse)) {
 
-		await message.reply(`🤖 ${commandResponse}`);
+		if(typeof commandResponse === 'string') {
+
+			await message.reply(`🤖 ${commandResponse}`);
+
+		} else {
+
+			await message.reply(commandResponse.caption, undefined, {
+				media: commandResponse.media,
+			});
+		}
 
 		await message.react('✅');
 

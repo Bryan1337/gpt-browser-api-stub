@@ -4,7 +4,7 @@
   "description": "ChatGPT Whatsapp bot",
   "main": "index.js",
   "scripts": {
-    "local": "node src/index.js"
+    "local": "node index.js"
   },
   "keywords": [
     "chatgpt",
@@ -19,7 +19,7 @@
     "qrcode-terminal": "^0.12.0",
     "queue": "^7.0.0",
     "uuid": "^9.0.0",
-    "whatsapp-web.js": "^1.19.5"
+    "whatsapp-web.js": "^1.20.0"
   },
   "type": "module",
   "devDependencies": {

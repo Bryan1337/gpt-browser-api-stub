@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "local": "node src/index.js"
+    "local": "node index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

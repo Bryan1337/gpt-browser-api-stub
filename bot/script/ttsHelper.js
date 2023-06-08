@@ -9,6 +9,60 @@ import { logInfo } from './logHelper.js';
 
 dotenv.config();
 
+export const supportedLanguages = [
+	"af",
+	"sq",
+	"ar",
+	"hy",
+	"ca",
+	"zh",
+	"zh-cn",
+	"zh-tw",
+	"zh-yue",
+	"hr",
+	"cs",
+	"da",
+	"nl",
+	"en",
+	"en-au",
+	"en-uk",
+	"en-us",
+	"eo",
+	"fi",
+	"fr",
+	"de",
+	"el",
+	"ht",
+	"hi",
+	"hu",
+	"is",
+	"id",
+	"it",
+	"ja",
+	"ko",
+	"la",
+	"lv",
+	"mk",
+	"no",
+	"pl",
+	"pt",
+	"pt-br",
+	"ro",
+	"ru",
+	"sr",
+	"sk",
+	"es",
+	"es-es",
+	"es-us",
+	"sw",
+	"sv",
+	"ta",
+	"th",
+	"tr",
+	"vi",
+	"cy"
+];
+
 const enabledAudioPath = `${process.cwd()}${process.env.ENABLED_AUDIO_PATH}`;
 
 createFileIfNotExists(enabledAudioPath);
@@ -79,7 +133,7 @@ export const disableAudioResponse = async (id) => {
 
 	if (enabledAudioIndex !== -1) {
 
-		const newEnabledAudio = [ ...enabledAudioMap ].filter(enabledAudio => enabledAudio.id !== id);
+		const newEnabledAudio = [...enabledAudioMap].filter(enabledAudio => enabledAudio.id !== id);
 
 		fs.writeFileSync(enabledAudioPath, JSON.stringify(newEnabledAudio, null, 2));
 

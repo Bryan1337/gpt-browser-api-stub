@@ -55,17 +55,6 @@ server.use((err, req, res, next) => {
 });
 
 
-
-
-setTimeout(async () => {
-
-	await newPage.evaluate(() => {
-		// Reload the page every 5-10 minutes to prevent any tokens from expiring
-		window.location.reload();
-	});
-
-}, getRandomValueBetween(5 * 60e3, 10 * 60e3))
-
 const getAccessToken = async () => {
 
 	return await newPage.evaluate(async () => {
@@ -144,6 +133,13 @@ server.post('/conversations', async (req, res) => {
 						}
 					}
 
+					if(conversationResponse.status === 401) {
+
+						window.location.reload();
+
+						return;
+					}
+
 					const conversationJson = await conversationResponse.json();
 
 					parentMessageId = conversationJson.current_node;
@@ -187,12 +183,6 @@ server.post('/conversations', async (req, res) => {
 				}
 			})
 
-			let conversationId = gptConversationId;
-
-			let messageId = newMessageId;
-
-			let promptResponse = '';
-
 			if(response.status === 403) {
 
 				window.location.reload();
@@ -219,6 +209,10 @@ server.post('/conversations', async (req, res) => {
 				}
 			}
 
+			let conversationId = gptConversationId;
+
+			let promptResponse = '';
+
 			const handleChunk = (chunk) => {
 
 				try {
@@ -234,8 +228,6 @@ server.post('/conversations', async (req, res) => {
 
 						return;
 					}
-
-					messageId = data.message.id;
 
 					conversationId = data.conversation_id;
 
@@ -289,7 +281,6 @@ server.post('/conversations', async (req, res) => {
 
 			return {
 				promptResponse: finalResponse,
-				messageId,
 				conversationId,
 			}
 
@@ -318,3 +309,17 @@ server.listen(process.env.PORT, () => {
 
 	console.log(`Passthrough API running on port ${process.env.PORT}`);
 });
+
+const getRandomValueBetween = (min, max) => {
+
+	return Math.random() * (max - min) + min;
+}
+
+setTimeout(async () => {
+
+	await newPage.evaluate(() => {
+		// Reload the page every 5-10 minutes to prevent any tokens from expiring
+		window.location.reload();
+	});
+
+}, getRandomValueBetween(5 * 60e3, 10 * 60e3))

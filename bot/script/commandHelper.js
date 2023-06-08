@@ -3,7 +3,11 @@ import { sanitizePrompt } from "./messageHelper.js";
 import { addToWhiteList } from "./whitelistHelper.js";
 import { addContext, clearContext, getContext } from "./contextHelper.js";
 import { startLoop, stopLoop } from "./loopHelper.js";
-import { disableAudioResponse, enableAudioResponse } from "./ttsHelper.js";
+import { disableAudioResponse, enableAudioResponse, supportedLanguages } from "./ttsHelper.js";
+import { getAiImageBase64 } from "./imageHelper.js";
+import { getMessageMediaFromBase64, getMessageMediaFromUrl } from "./whatsappHelper.cjs";
+import WAWebJS from "whatsapp-web.js";
+import { getVideo } from "./textToVideoHelper.js";
 
 
 const getCommands = () => ({
@@ -29,11 +33,19 @@ const getCommands = () => ({
 	},
 	enableAudio: {
 		command: '!enableAudio',
-		description: `Enables audio responses. Usage:\n \`\`\`!enableAudio <languagecode> (nl, en, fr etc...)\`\`\``,
+		description: `Enables audio responses. Usage:\n \`\`\`!enableAudio <languagecode> (nl, en, fr etc...)\`\`\`\n Supported languages are: ${supportedLanguages.join(', ')}`,
 	},
 	disableAudio: {
 		command: '!disableAudio',
 		description: `Disables audio responses. Usage:\n \`\`\`!disableAudio\`\`\``,
+	},
+	video: {
+		command: '!video',
+		description: `Sends a video. Usage:\n \`\`\`!video <video prompt>\`\`\``,
+	},
+	image: {
+		command: '!image',
+		description: `Sends an image. Usage:\n \`\`\`!image <image prompt>\`\`\``,
 	},
 	// loop: {
 	// 	command: '!loop',
@@ -133,6 +145,85 @@ const stopLoopCommand = (id) => {
 	return 'Loop already stopped 🤔';
 }
 
+
+/**
+ *
+ * @param {string} text
+ * @param {WAWebJS.Message} message
+ * @returns
+ */
+const videoCommand = async (text, message) => {
+
+	await message.react('🎥');
+
+	const commands = getCommands();
+
+	const splitMessage = text.split(commands.video.command).filter(Boolean);
+
+	const [videoPrompt] = splitMessage;
+
+	if (!videoPrompt.trim()) {
+
+		return 'No video prompt given 🤔';
+	}
+
+	try {
+
+		const videoUrl = await getVideo(videoPrompt);
+
+		const messageMedia = await getMessageMediaFromUrl(videoUrl);
+
+		return {
+			type: 'video',
+			media: messageMedia,
+			caption: `*_"${`${videoPrompt}`.trim()}"_*`,
+		}
+
+	} catch (error) {
+
+		return `Something went wrong generating a video 😩 (${error.message})` ;
+	}
+}
+
+
+/**
+ *
+ * @param {string} text
+ * @param {WAWebJS.Message} message
+ * @returns
+ */
+
+const imageCommand = async (text, message) => {
+
+	await message.react('🖼️');
+
+	const commands = getCommands();
+
+	let initialMedia;
+
+	if(message.hasMedia) {
+
+		initialMedia = await message.downloadMedia();
+	}
+
+	const splitMessage = text.split(commands.image.command).filter(Boolean);
+
+	const [imagePrompt] = splitMessage;
+
+	const imageBase64 = await getAiImageBase64(imagePrompt, initialMedia);
+
+	if (!imageBase64) {
+
+		return 'Something went wrong generating an image 😩';
+	}
+
+	return {
+		type: 'image',
+		media: getMessageMediaFromBase64('image/jpeg', imageBase64.split(',')[1]),
+		caption: `*_"${`${imagePrompt}`.trim()}"_*`,
+	};
+}
+
 const enableAudioCommand = (id, text) => {
 
 	const commands = getCommands();
@@ -141,9 +232,16 @@ const enableAudioCommand = (id, text) => {
 
 	const [language] = splitMessage;
 
-	enableAudioResponse(id, `${language}`.trim());
+	const isoCode = language.trim();
 
-	return `Audio responses enabled in language *${`${language}`.trim().toUpperCase()}}* 👌`;
+	if (!supportedLanguages.includes(`${isoCode}`.toLowerCase())) {
+
+		return `Language *${`${isoCode}`.toUpperCase()}* is not supported 🚫. Supported languages are:\n*${supportedLanguages.join(', ')}*`;
+	}
+
+	enableAudioResponse(id, isoCode);
+
+	return `Audio responses enabled in language *${isoCode.toUpperCase()}* 👌`;
 }
 
 const disableAudioCommand = (id) => {
@@ -159,13 +257,18 @@ const disableAudioCommand = (id) => {
 /**
  * @param {WAWebJS.Message} message
  */
-export const getCommandResponse = (message) => {
+export const getCommandResponse = async (message) => {
 
 	const commands = getCommands();
 
 	const remoteId = message.id.remote._serialized || message.id.remote;
 
 	const text = sanitizePrompt(message.body);
+
+	if (text.startsWith(commands.image.command)) {
+
+		return await imageCommand(text, message);
+	}
 
 	if (text.startsWith(commands.register.command)) {
 
@@ -200,6 +303,11 @@ export const getCommandResponse = (message) => {
 	if(text.startsWith(commands.disableAudio.command)) {
 
 		return disableAudioCommand(remoteId);
+	}
+
+	if(text.startsWith(commands.video.command)) {
+
+		return await videoCommand(text, message);
 	}
 
 	// if(text.startsWith(commands.loop.command)) {

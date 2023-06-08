@@ -32,9 +32,9 @@ export const storePrompt = (displayName, id, prompt, response, requestDuration) 
 	fs.writeFileSync(promptMapPath, JSON.stringify(promptMap, null, 2));
 }
 
-export const setConversationDetails = (chatId, conversationId, parentMessageId) => {
+export const setConversationDetails = (chatId, conversationId) => {
 
-	if(!chatId || !conversationId || !parentMessageId) {
+	if(!chatId) {
 
 		return;
 	}
@@ -52,7 +52,6 @@ export const setConversationDetails = (chatId, conversationId, parentMessageId) 
 		conversationMap[conversationIndex] = {
 			whatsappIdentifier: chatId,
 			gptConversationId: conversationId,
-			gptParentMessageId: parentMessageId
 		};
 
 	} else {
@@ -62,7 +61,6 @@ export const setConversationDetails = (chatId, conversationId, parentMessageId) 
 		conversationMap.push({
 			whatsappIdentifier: chatId,
 			gptConversationId: conversationId,
-			gptParentMessageId: parentMessageId
 		});
 
 	}

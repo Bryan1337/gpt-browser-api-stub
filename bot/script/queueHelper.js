@@ -5,8 +5,9 @@ import { logError, logInfo } from './logHelper.js';
 import WAWebJS from 'whatsapp-web.js';
 import { isLooping } from './loopHelper.js';
 import { getAudioData, getAudioFilePath, removeAudioFile } from './ttsHelper.js';
-import { getMessageMediaFromFilePath } from './whatsappHelper.cjs';
+import { getMessageMediaFromBase64, getMessageMediaFromFilePath } from './whatsappHelper.cjs';
 import Queue from 'queue';
+import { getAiImageBase64 } from './imageHelper.js';
 
 const queue = new Queue({
 	concurrency: 1,
@@ -56,13 +57,14 @@ const handleQueueItem = async (message, attempt = 1) => {
 
 		const responseStartTime = Date.now();
 
-		const response = await getChatGPTResponse(formattedPrompt, conversationDetails);
-
 		const responseEndTime = Date.now();
 
-		const requestDuration = (responseEndTime - responseStartTime);
+		const [response, responseImageBase64Data ] = await Promise.all([
+			getChatGPTResponse(formattedPrompt, conversationDetails),
+			getAiImageBase64(formattedPrompt)
+		]);
 
-		setConversationDetails(remoteId, response.conversationId, response.messageId);
+		setConversationDetails(remoteId, response.conversationId);
 
 		const audioData = await getAudioData(remoteId);
 
@@ -78,8 +80,22 @@ const handleQueueItem = async (message, attempt = 1) => {
 
 		} else {
 
-			await message.reply(`🤖 ${response.promptResponse}`);
+			/**
+			 * @type {WAWebJS.MessageSendOptions}
+			 */
+			let messageProps = {};
+
+			if (responseImageBase64Data) {
+
+				const messageMedia = getMessageMediaFromBase64('image/jpeg', responseImageBase64Data.split(',')[1]);
+
+				messageProps.media = messageMedia
+			}
+
+			await message.reply(`🤖 ${response.promptResponse}`, undefined, messageProps);
 		}
+
+		const requestDuration = (responseEndTime - responseStartTime);
 
 		await message.react('✅');
 
