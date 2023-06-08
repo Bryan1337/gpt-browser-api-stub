@@ -54,7 +54,7 @@ client.on('message', async message => {
 
 		if (!checkWhitelistStatus(message.from)) {
 
-			logWarning('Received message from unregistered user:', `(${message._data.notifyName})`,message.from, message.body)
+			logWarning('Received message from unregistered user:', `(${message._data.notifyName})`,message.from, message.body);
 
 			await message.reply(`🤖 Sorry, you are not allowed to use to use the Boy. @31611596195 for an access key 😌👌.`);
 
