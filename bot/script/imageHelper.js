@@ -5,59 +5,20 @@ import { logError, logInfo } from './logHelper.js';
 dotenv.config();
 
 const defaultProps = {
-	width: 768,
-	height: 768,
+	width: 512,
+	height: 512,
 	num_images: 1,
-	sampler: 1,
-	cfg_scale: 15,
-	guidance_scale: 15,
-	strength: 1.3,
-	steps: 50,
-	// filter: 'polymode_style',
+	sampler: 3,
+	cfg_scale: 10,
+	guidance_scale: 10,
+	strength: 1,
+	steps: 30,
 	hide: false,
 	isPrivate: false,
-	modelType: 'stable-diffusion-2',
+	modelType: 'stable-diffusion-xl',
 	generateVariants: false,
-	negativePrompt: [
-		"bad anatomy",
-		"bad proportions",
-		"blurry",
-		"cloned face",
-		"cropped",
-		"deformed",
-		"dehydrated",
-		"disfigured",
-		"duplicate",
-		"error",
-		"extra arms",
-		"extra fingers",
-		"extra legs",
-		"extra limbs",
-		"fused fingers",
-		// "gross proportions",
-		"jpeg artifacts",
-		"long neck",
-		"low quality",
-		"lowres",
-		"malformed limbs",
-		"missing arms",
-		"missing legs",
-		"missing fingers",
-		// "morbid",
-		// "mutated hands",
-		// "mutation",
-		// "mutilated",
-		"out of frame",
-		"poorly drawn face",
-		"poorly drawn hands",
-		"signature",
-		// "text",
-		"too many fingers",
-		"ugly",
-		"username",
-		"watermark",
-		"worst quality",
-	].join(", "),
+	negativePrompt: "",
+	initImageFromPlayground: false,
 }
 
 const maxImageFetchAttemptCount = 5;
@@ -78,16 +39,19 @@ export const getAiImageBase64 = async (prompt, initialMedia, attemptCount = 1) =
 		if (initialMedia) {
 
 			bodyData.init_image = `data:${initialMedia.mimetype};base64,${initialMedia.data}`;
-			bodyData.height = 512;
-			bodyData.width = 512;
-			bodyData.modelType = 'stable-diffusion';
-			bodyData.sampler = 3;
-			bodyData.mode = 2;
-			bodyData.start_schedule = 0.7;
+			bodyData.sampler = 1;
+			bodyData.cfg_scale = 30;
+			bodyData.guidance_scale = 30;
+			bodyData.strength = 1;
+			bodyData.steps = 50;
+			bodyData.mode = 0;
+			bodyData.start_schedule = 0.89;
 			bodyData.mask_strength = 0.7;
-			bodyData.hide = true;
-			bodyData.negativePrompt = undefined;
 		}
+
+		console.log({
+			bodyData
+		})
 
 		const response = await fetch('https://playgroundai.com/api/models', {
 			headers: {
@@ -99,6 +63,10 @@ export const getAiImageBase64 = async (prompt, initialMedia, attemptCount = 1) =
 		})
 
 		const jsonResponse = await response.json();
+
+		console.log({
+			jsonResponse
+		})
 
 		if (jsonResponse.error) {
 

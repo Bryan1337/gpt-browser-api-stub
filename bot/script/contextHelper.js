@@ -93,3 +93,138 @@ export const getContext = (id) => {
 		return contextMap[contextIndex].context;
 	}
 }
+
+
+export const getGlobalContext = async () => {
+
+	const response = await fetch(`${process.env.API_URL}/system-messages`, {
+		method: 'GET',
+		headers: {
+			'content-type': "application/json",
+		}
+	});
+
+	const responseJson = await response.json();
+
+	console.log({
+		req: 'getGlobalContext',
+		responseJson,
+	})
+
+	if (responseJson.error) {
+
+		if (responseJson.code === 429) {
+
+			throw new Error(`Sorry, Too many requests, try again in a bit 😅.`);
+		}
+
+		throw new Error(responseJson.error);
+	}
+
+	return responseJson;
+}
+
+export const setGlobalUserContext = async (userContext) => {
+
+	const globalContext = await getGlobalContext();
+
+	const response = await fetch(`${process.env.API_URL}/system-messages`, {
+		method: 'POST',
+		headers: {
+			'content-type': "application/json",
+		},
+		body: JSON.stringify({
+			aboutUserMessage: userContext,
+			aboutModelMessage: globalContext.about_model_message,
+		})
+	});
+
+	const responseJson = await response.json();
+
+	console.log({
+		req: 'setGlobalUserContext',
+		responseJson,
+	})
+
+	if (responseJson.error) {
+
+		if (responseJson.code === 429) {
+
+			throw new Error(`Sorry, Too many requests, try again in a bit 😅.`);
+		}
+
+		throw new Error(responseJson.error);
+	}
+
+	return responseJson;
+
+}
+
+export const setGlobalSystemContext = async (modelContext) => {
+
+	const globalContext = await getGlobalContext();
+
+	const response = await fetch(`${process.env.API_URL}/system-messages`, {
+		method: 'POST',
+		headers: {
+			'content-type': "application/json",
+		},
+		body: JSON.stringify({
+			aboutUserMessage: globalContext.about_user_message,
+			aboutModelMessage: modelContext
+		})
+	});
+
+	const responseJson = await response.json();
+
+	console.log({
+		req: 'setGlobalSystemContext',
+		responseJson,
+	})
+
+	if (responseJson.error) {
+
+		if (responseJson.code === 429) {
+
+			throw new Error(`Sorry, Too many requests, try again in a bit 😅.`);
+		}
+
+		throw new Error(responseJson.error);
+	}
+
+	return responseJson;
+}
+
+export const clearGlobalContext = async () => {
+
+	const response = await fetch(`${process.env.API_URL}/system-messages`, {
+		method: 'POST',
+		headers: {
+			'content-type': "application/json",
+		},
+		body: JSON.stringify({
+			aboutUserMessage: "",
+			aboutModelMessage: "",
+		})
+	});
+
+	const responseJson = await response.json();
+
+	console.log({
+		req: 'clearGlobalContext',
+		responseJson,
+	})
+
+	if (responseJson.error) {
+
+		if (responseJson.code === 429) {
+
+			throw new Error(`Sorry, Too many requests, try again in a bit 😅.`);
+		}
+
+		throw new Error(responseJson.error);
+	}
+
+	return responseJson;
+
+}

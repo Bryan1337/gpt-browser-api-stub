@@ -47,11 +47,9 @@ const deleteToken = async (token) => {
 }
 
 
-const getTeamId = async () => {
+const getTeamId = async (token) => {
 
 	const teamsUrl = `${baseUrl}/teams`;
-
-	const token = await getToken();
 
 	const response = await fetch(teamsUrl, {
 		method: 'GET',
@@ -77,13 +75,13 @@ const getTeamId = async () => {
 	throw new Error('Failed to get team id');
 }
 
-export const getVideo = async (prompt = '') => {
+export const getVideo = async (prompt = '', imageUrl = null) => {
 
 	logInfo('Generating video from prompt:', prompt);
 
-	const teamId = await getTeamId();
-
 	const token = await getToken();
+
+	const teamId = await getTeamId(token);
 
 	const params = {
 		taskType: "gen2",
@@ -104,6 +102,15 @@ export const getVideo = async (prompt = '') => {
 		asTeamId: teamId
 	}
 
+	if (imageUrl) {
+
+		params.options.gen2Options.image_prompt = imageUrl;
+	}
+
+	console.log(JSON.stringify({
+		params
+	}))
+
 	const response = await fetch(`${baseUrl}/tasks`, {
 		method: 'POST',
 		headers: {
@@ -119,7 +126,7 @@ export const getVideo = async (prompt = '') => {
 
 		const { id } = json.task;
 
-		const url = await pollVideo(id, teamId, token, prompt);
+		const url = await pollVideo(id, teamId, token, prompt, imageUrl);
 
 		return url;
 	}
@@ -128,13 +135,13 @@ export const getVideo = async (prompt = '') => {
 
 		logError(JSON.stringify(json));
 
-		if (json.error === 'You do not have enough credits to run this task.') {
+		if (Boolean(json.error)) {
 
-			logInfo('Token ran out of credits. Deleting token and trying again', token);
+			logInfo(json.error, token);
 
 			deleteToken(token);
 
-			return await getVideo(prompt);
+			return await getVideo(prompt, imageUrl);
 		}
 
 		throw new Error(json.error);
@@ -145,7 +152,7 @@ export const getVideo = async (prompt = '') => {
 	throw new Error('Task failed during initial request');
 }
 
-const pollVideo = async (taskId, teamId, token, prompt, attempt = 1) => {
+const pollVideo = async (taskId, teamId, token, prompt, imageUrl, attempt = 1) => {
 
 	const url = `${baseUrl}/tasks/${taskId}?asTeamId=${teamId}`;
 
@@ -169,7 +176,7 @@ const pollVideo = async (taskId, teamId, token, prompt, attempt = 1) => {
 
 			const { url } = artifact;
 
-			logInfo('Task succeeded, downloading video', taskId, prompt, url);
+			logInfo('Task succeeded, downloading video', taskId, prompt, url, imageUrl);
 
 			return url;
 		}
@@ -183,11 +190,11 @@ const pollVideo = async (taskId, teamId, token, prompt, attempt = 1) => {
 
 		if(status === 'RUNNING' || status === 'PENDING') {
 
-			logInfo('Task is still running, waiting 5 seconds before polling again', `Attempt ${attempt}`, taskId, prompt);
+			logInfo('Task is still running, waiting 5 seconds before polling again', `Attempt ${attempt}`, taskId, prompt, imageUrl);
 
 			await new Promise(resolve => setTimeout(resolve, 5000));
 
-			return await pollVideo(taskId, teamId, token, prompt, attempt + 1);
+			return await pollVideo(taskId, teamId, token, prompt, imageUrl, attempt + 1);
 		}
 
 		throw new Error(`Task failed with status: ${status}`);
@@ -203,7 +210,7 @@ const pollVideo = async (taskId, teamId, token, prompt, attempt = 1) => {
 
 			deleteToken(token);
 
-			return await getVideo(prompt);
+			return await getVideo(prompt, imageUrl);
 		}
 
 		logError(JSON.stringify(json));
@@ -215,11 +222,11 @@ const pollVideo = async (taskId, teamId, token, prompt, attempt = 1) => {
 
 		if (json.message === "Too Many Requests") {
 
-			logWarning('Too many requests, waiting 15 seconds before polling again', `Attempt ${attempt}`, taskId, prompt);
+			logWarning('Too many requests, waiting 15 seconds before polling again', `Attempt ${attempt}`, taskId, prompt, imageUrl);
 
 			await new Promise(resolve => setTimeout(resolve, 15000));
 
-			return await pollVideo(taskId, teamId, token, prompt, attempt + 1);
+			return await pollVideo(taskId, teamId, token, prompt, imageUrl, attempt + 1);
 		}
 	}
 

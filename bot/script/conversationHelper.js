@@ -76,3 +76,8 @@ export const getConversationDetails = (chatId) => {
 
 	return conversationMap.find(conversation => conversation.whatsappIdentifier === chatId) || {};
 }
+
+export const clearAllConversationDetails = () => {
+
+	fs.writeFileSync(conversationFilePath, JSON.stringify([], null, 2));
+}

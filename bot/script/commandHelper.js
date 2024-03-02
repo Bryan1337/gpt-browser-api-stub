@@ -1,51 +1,66 @@
 import { validateAccessKey } from "./accessKeyHelper.js";
 import { sanitizePrompt } from "./messageHelper.js";
 import { addToWhiteList } from "./whitelistHelper.js";
-import { addContext, clearContext, getContext } from "./contextHelper.js";
+import { addContext, clearContext, clearGlobalContext, getContext, getGlobalContext, setGlobalSystemContext, setGlobalUserContext } from "./contextHelper.js";
 import { startLoop, stopLoop } from "./loopHelper.js";
 import { disableAudioResponse, enableAudioResponse, supportedLanguages } from "./ttsHelper.js";
 import { getAiImageBase64 } from "./imageHelper.js";
-import { getMessageMediaFromBase64, getMessageMediaFromUrl } from "./whatsappHelper.cjs";
+import { getLocation, getMessageMediaFromBase64, getMessageMediaFromUrl } from "./whatsappHelper.cjs";
 import WAWebJS from "whatsapp-web.js";
 import { getVideo } from "./textToVideoHelper.js";
+import { clearAllConversationDetails } from "./conversationHelper.js";
 
 
 const getCommands = () => ({
 	register: {
 		command: '!register',
 		description: `Registers a chat/conversation with the bot. Usage:\n \`\`\`!register <registration key>\`\`\``,
+		handler: registerCommand,
 	},
 	context: {
 		command: '!context',
 		description: `Adds/updates the context for the current chat/conversation. Usage:\n \`\`\`!context <context>\`\`\``,
+		handler: contextCommand,
 	},
 	getContext: {
 		command: '!getContext',
 		description: `Shows the context for the current chat/conversation. Usage:\n \`\`\`!getContext\`\`\``,
+		handler: getContextCommand,
 	},
 	clearContext: {
 		command: '!clearContext',
 		description: `Clears the context for the current chat/conversation. Usage:\n \`\`\`!clearContext\`\`\``,
+		handler: clearContextCommand,
 	},
 	help: {
 		command: '!help',
 		description: `Shows the list of commands. Usage:\n \`\`\`!help\`\`\``,
+		handler: helpCommand,
 	},
 	enableAudio: {
 		command: '!enableAudio',
 		description: `Enables audio responses. Usage:\n \`\`\`!enableAudio <languagecode> (nl, en, fr etc...)\`\`\`\n Supported languages are: ${supportedLanguages.join(', ')}`,
+		handler: enableAudioCommand,
 	},
 	disableAudio: {
 		command: '!disableAudio',
 		description: `Disables audio responses. Usage:\n \`\`\`!disableAudio\`\`\``,
+		handler: disableAudioCommand,
+	},
+	videoUrl: {
+		command: '!videoUrl',
+		description: `Sends a video from an image url along with a prompt. Usage:\n \`\`\`!videoUrl <image url> <video prompt>\`\`\``,
+		handler: videoUrlCommand,
 	},
 	video: {
 		command: '!video',
 		description: `Sends a video. Usage:\n \`\`\`!video <video prompt>\`\`\``,
+		handler: videoCommand,
 	},
 	image: {
 		command: '!image',
 		description: `Sends an image. Usage:\n \`\`\`!image <image prompt>\`\`\``,
+		handler: imageCommand,
 	},
 	// loop: {
 	// 	command: '!loop',
@@ -67,13 +82,17 @@ const helpCommand = () => {
 /**
  * @param {WAWebJS.Message} message
  */
-const registerCommand = (text, id) => {
+const registerCommand = (commandData) => {
+
+	const { text, message } = commandData;
+
+	const id = message.from;
 
 	const commands = getCommands();
 
 	const splitMessage = text.split(commands.register.command).filter(Boolean);
 
-	const [ registrationKey ] = splitMessage;
+	const [registrationKey] = splitMessage;
 
 	if (validateAccessKey(`${registrationKey}`.trim(), id)) {
 
@@ -87,7 +106,9 @@ const registerCommand = (text, id) => {
 	}
 }
 
-const contextCommand = (id, text) => {
+const contextCommand = (commandData) => {
+
+	const { text, remoteId } = commandData;
 
 	const commands = getCommands();
 
@@ -95,7 +116,7 @@ const contextCommand = (id, text) => {
 
 	const [context] = splitMessage;
 
-	if(addContext(id, context)) {
+	if (addContext(remoteId, context)) {
 
 		return 'Context added/updated 👌';
 	}
@@ -103,11 +124,13 @@ const contextCommand = (id, text) => {
 	return 'No context to add 🤔';
 }
 
-const getContextCommand = (id) => {
+const getContextCommand = (commandData) => {
 
-	const context = getContext(id);
+	const { remoteId } = commandData;
 
-	if(context) {
+	const context = getContext(remoteId);
+
+	if (context) {
 
 		return `Current context is:\n\n${context}`;
 	}
@@ -115,9 +138,11 @@ const getContextCommand = (id) => {
 	return 'No context was found 🤔';
 }
 
-const clearContextCommand = (id) => {
+const clearContextCommand = (commandData) => {
 
-	if(clearContext(id)) {
+	const { remoteId } = commandData;
+
+	if (clearContext(remoteId)) {
 
 		return 'Context cleared 👌';
 	}
@@ -127,7 +152,7 @@ const clearContextCommand = (id) => {
 
 const loopCommand = (id) => {
 
-	if(startLoop(id)) {
+	if (startLoop(id)) {
 
 		return 'Loop started 👌';
 	}
@@ -137,7 +162,7 @@ const loopCommand = (id) => {
 
 const stopLoopCommand = (id) => {
 
-	if(stopLoop(id)) {
+	if (stopLoop(id)) {
 
 		return 'Loop stopped 👌';
 	}
@@ -146,13 +171,58 @@ const stopLoopCommand = (id) => {
 }
 
 
+const videoUrlCommand = async (commandData) => {
+
+	const { text, message } = commandData;
+
+	await message.react('🎥');
+
+	const commands = getCommands();
+
+	const splitMessage = text.split(commands.videoUrl.command).filter(Boolean);
+
+	const [messageText] = splitMessage;
+
+	const [fileUrl, ...restOfText] = messageText.trim().split(' ');
+
+	const videoPrompt = restOfText.join(' ');
+
+	if (!fileUrl.trim()) {
+
+		return 'No file url given 🤔';
+	}
+
+	if (!videoPrompt.trim()) {
+
+		return 'No video prompt given 🤔';
+	}
+
+	try {
+
+		const videoUrl = await getVideo(videoPrompt, fileUrl);
+
+		const messageMedia = await getMessageMediaFromUrl(videoUrl);
+
+		return {
+			type: 'video',
+			media: messageMedia,
+			caption: `*_"${`${videoPrompt}`.trim()}"_*`,
+		}
+
+	} catch (error) {
+
+		return `Something went wrong generating a video from an url 😩 (${error.message})`;
+	}
+}
 /**
  *
  * @param {string} text
  * @param {WAWebJS.Message} message
  * @returns
  */
-const videoCommand = async (text, message) => {
+const videoCommand = async (commandData) => {
+
+	const { text, message } = commandData;
 
 	await message.react('🎥');
 
@@ -181,7 +251,7 @@ const videoCommand = async (text, message) => {
 
 	} catch (error) {
 
-		return `Something went wrong generating a video 😩 (${error.message})` ;
+		return `Something went wrong generating a video 😩 (${error.message})`;
 	}
 }
 
@@ -193,7 +263,9 @@ const videoCommand = async (text, message) => {
  * @returns
  */
 
-const imageCommand = async (text, message) => {
+const imageCommand = async (commandData) => {
+
+	const { text, message } = commandData;
 
 	await message.react('🖼️');
 
@@ -201,7 +273,7 @@ const imageCommand = async (text, message) => {
 
 	let initialMedia;
 
-	if(message.hasMedia) {
+	if (message.hasMedia) {
 
 		initialMedia = await message.downloadMedia();
 	}
@@ -224,13 +296,20 @@ const imageCommand = async (text, message) => {
 	};
 }
 
-const enableAudioCommand = (id, text) => {
+const enableAudioCommand = (commandData) => {
+
+	const { remoteId, text } = commandData;
 
 	const commands = getCommands();
 
 	const splitMessage = text.split(commands.enableAudio.command).filter(Boolean);
 
 	const [language] = splitMessage;
+
+	if(!language) {
+
+		return `No language given 🤔. Supported languages are:\n*${supportedLanguages.join(', ')}*`;
+	}
 
 	const isoCode = language.trim();
 
@@ -239,14 +318,16 @@ const enableAudioCommand = (id, text) => {
 		return `Language *${`${isoCode}`.toUpperCase()}* is not supported 🚫. Supported languages are:\n*${supportedLanguages.join(', ')}*`;
 	}
 
-	enableAudioResponse(id, isoCode);
+	enableAudioResponse(remoteId, isoCode);
 
 	return `Audio responses enabled in language *${isoCode.toUpperCase()}* 👌`;
 }
 
-const disableAudioCommand = (id) => {
+const disableAudioCommand = (commandData) => {
 
-	if(disableAudioResponse(id)) {
+	const { remoteId } = commandData;
+
+	if (disableAudioResponse(remoteId)) {
 
 		return 'Audio responses disabled 👌';
 	}
@@ -265,60 +346,19 @@ export const getCommandResponse = async (message) => {
 
 	const text = sanitizePrompt(message.body);
 
-	if (text.startsWith(commands.image.command)) {
-
-		return await imageCommand(text, message);
+	const commandData = {
+		remoteId,
+		message,
+		text,
 	}
 
-	if (text.startsWith(commands.register.command)) {
+	for (const commandObject of Object.values(commands)) {
 
-		return registerCommand(text, message.from);
+		if (text.startsWith(commandObject.command)) {
+
+			return await commandObject.handler(commandData);
+		}
 	}
-
-	if (text.startsWith(commands.context.command)) {
-
-		return contextCommand(remoteId, text);
-	}
-
-	if (text.startsWith(commands.clearContext.command)) {
-
-		return clearContextCommand(remoteId);
-	}
-
-	if (text.startsWith(commands.getContext.command)) {
-
-		return getContextCommand(remoteId);
-	}
-
-	if (text.startsWith(commands.help.command)) {
-
-		return helpCommand();
-	}
-
-	if(text.startsWith(commands.enableAudio.command)) {
-
-		return enableAudioCommand(remoteId, text);
-	}
-
-	if(text.startsWith(commands.disableAudio.command)) {
-
-		return disableAudioCommand(remoteId);
-	}
-
-	if(text.startsWith(commands.video.command)) {
-
-		return await videoCommand(text, message);
-	}
-
-	// if(text.startsWith(commands.loop.command)) {
-
-	// 	return loopCommand(remoteId);
-	// }
-
-	// if(text.startsWith(commands.stopLoop.command)) {
-
-	// 	return stopLoopCommand(remoteId);
-	// }
 
 	return false;
 }

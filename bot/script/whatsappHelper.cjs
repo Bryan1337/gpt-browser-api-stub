@@ -1,16 +1,24 @@
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const { Client, LocalAuth, Location, MessageMedia } = require('whatsapp-web.js');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
+const getLocation = (latitude, longitude, description) => {
+
+	return new Location(latitude, longitude, description);
+}
 
 const getWhatsappClient = () => {
 
 	return new Client({
 		authStrategy: new LocalAuth(),
+		webVersionCache: {
+			type: 'remote',
+			remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2341.18.html',
+		},
 		puppeteer: {
 			executablePath: `${process.env.CHROME_DIR}`,
-		}
+		},
 	});
 }
 
@@ -30,6 +38,7 @@ const getMessageMediaFromUrl = async (url) => {
 }
 
 module.exports = {
+	getLocation,
 	getWhatsappClient,
 	getMessageMediaFromFilePath,
 	getMessageMediaFromBase64,

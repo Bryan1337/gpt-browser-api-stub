@@ -38,9 +38,16 @@ client.on('message', async message => {
 
 		} else {
 
-			await message.reply(commandResponse.caption, undefined, {
-				media: commandResponse.media,
-			});
+			if(commandResponse.type === "location") {
+
+				await message.reply(commandResponse.location);
+
+			} else {
+
+				await message.reply(commandResponse.caption, undefined, {
+					media: commandResponse.media,
+				});
+			}
 		}
 
 		await message.react('✅');
