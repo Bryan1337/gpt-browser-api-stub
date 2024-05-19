@@ -52,6 +52,8 @@ server.post('/conversations', async (req, res) => {
 
 		log('Received /conversations request...');
 
+		await importBrowserScripts(newPage);
+
 		const newMessageId = uuidv4().split('').map((c, i) => i <= 2 ? 'a' : c).join('');
 		const parentMessageId = uuidv4();
 		const websocketRequestId = uuidv4();
