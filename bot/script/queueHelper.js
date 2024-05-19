@@ -59,9 +59,12 @@ const handleQueueItem = async (message, attempt = 1) => {
 
 		const responseEndTime = Date.now();
 
-		const [response, responseImageBase64Data ] = await Promise.all([
+		const [
+			response,
+			// responseImageBase64Data
+		] = await Promise.all([
 			getChatGPTResponse(formattedPrompt, conversationDetails),
-			getAiImageBase64(formattedPrompt)
+			// getAiImageBase64(formattedPrompt)
 		]);
 
 		setConversationDetails(remoteId, response.conversationId);
@@ -85,12 +88,12 @@ const handleQueueItem = async (message, attempt = 1) => {
 			 */
 			let messageProps = {};
 
-			if (responseImageBase64Data) {
+			// if (responseImageBase64Data) {
 
-				const messageMedia = getMessageMediaFromBase64('image/jpeg', responseImageBase64Data.split(',')[1]);
+			// 	const messageMedia = getMessageMediaFromBase64('image/jpeg', responseImageBase64Data.split(',')[1]);
 
-				messageProps.media = messageMedia
-			}
+			// 	messageProps.media = messageMedia
+			// }
 
 			await message.reply(`🤖 ${response.promptResponse}`, undefined, messageProps);
 		}

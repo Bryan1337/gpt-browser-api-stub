@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { getRandomString } from './randomHelper.js';
 import { logError, logInfo } from './logHelper.js';
+import { v4 as uuidv4 } from "uuid";
 
 dotenv.config();
 
@@ -21,6 +22,23 @@ const defaultProps = {
 	initImageFromPlayground: false,
 }
 
+const playgroundAiV2Props = {
+    width: 1024,
+    height: 1024,
+    num_images: 1,
+    modelType: "Playground_v2.5",
+    sampler: 9,
+    cfg_scale: 3,
+    guidance_scale: 3,
+    strength: 1.45,
+    steps: 30,
+    high_noise_frac: 1,
+    negativePrompt: "",
+    isPrivate: false,
+    generateVariants: false,
+    initImageFromPlayground: false,
+}
+
 const maxImageFetchAttemptCount = 5;
 
 export const getAiImageBase64 = async (prompt, initialMedia, attemptCount = 1) => {
@@ -33,6 +51,7 @@ export const getAiImageBase64 = async (prompt, initialMedia, attemptCount = 1) =
 			prompt,
 			batchId: getRandomString(10),
 			seed: (Math.random() * 1e9) >> 0,
+			// statusUUID: uuidv4(),
 			...defaultProps,
 		}
 
@@ -69,6 +88,14 @@ export const getAiImageBase64 = async (prompt, initialMedia, attemptCount = 1) =
 		})
 
 		if (jsonResponse.error) {
+
+			if([
+				'RATE_LIMITED',
+				'GATEWAY_TIMEOUT',
+			].includes(jsonResponse.errorCode)) {
+
+				return null;
+			}
 
 			logError('Error from playgroundAI API', jsonResponse.error);
 

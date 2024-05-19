@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 
-
 export const logInfo = (...messages) => {
 
 	log(chalk.blue('INFO'), ...messages);

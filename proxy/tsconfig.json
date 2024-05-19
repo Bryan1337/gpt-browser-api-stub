@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "target": "ESNext",
+    "module": "NodeNext",
+    "checkJs": true,
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "outDir": "./build"
+  },
+  "include": [
+    "/**/*.js",
+    "/**/*.ts",
+ ],
+  "exclude": [
+    "node_modules"
+  ]
+}
