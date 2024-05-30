@@ -1,13 +1,11 @@
-import { getConversationDetails, setConversationDetails, storePrompt } from './conversationHelper.js';
-import { getChatGPTResponse } from './chatGPTHelper.js';
-import { sanitizePrompt } from './messageHelper.js';
-import { logError, logInfo } from './logHelper.js';
-import WAWebJS from 'whatsapp-web.js';
-import { isLooping } from './loopHelper.js';
-import { getAudioData, getAudioFilePath, removeAudioFile } from './ttsHelper.js';
-import { getMessageMediaFromBase64, getMessageMediaFromFilePath } from './whatsappHelper.cjs';
+import { getConversationDetails, setConversationDetails, storePrompt } from './conversationHelper';
+import { getChatGPTResponse } from './chatGPTHelper';
+import { sanitizePrompt } from './messageHelper';
+import { logError, logInfo } from './logHelper';
+import { getAudioData, getAudioFilePath, removeAudioFile } from './ttsHelper';
+import { getMessageMediaFromFilePath } from './whatsappHelper';
 import Queue from 'queue';
-import { getAiImageBase64 } from './imageHelper.js';
+import { Message, MessageSendOptions } from 'whatsapp-web.js';
 
 const queue = new Queue({
 	concurrency: 1,
@@ -18,17 +16,17 @@ const queue = new Queue({
 const maxAttempts = 5;
 const itemAttemptDelay = 3000;
 
-let messageProxy = null;
+let messageProxy: Message | null = null;
 
-queue.addEventListener('timeout', async (error) => {
+queue.addEventListener('timeout', (error) => {
 
 	logInfo('Job timed out...');
 
 	if (messageProxy) {
 
-		await messageProxy.reply(`🤖 Sorry, The request timed out 😫.`);
+		messageProxy.reply(`🤖 Sorry, The request timed out 😫.`);
 
-		await messageProxy.react('❌');
+		messageProxy.react('❌');
 	}
 
 	error.detail.next();
@@ -36,16 +34,15 @@ queue.addEventListener('timeout', async (error) => {
 
 queue.start();
 
-/**
- * @param {WAWebJS.Message} message
- */
-const handleQueueItem = async (message, attempt = 1) => {
+const handleQueueItem = async (message: Message, attempt = 1) => {
 
 	logInfo('Handling queue item');
 
+	let modelEmoji = '🤖';
+
 	try {
 
-		const remoteId = message.id.remote._serialized || message.id.remote;
+		const remoteId = message.id.remote;
 
 		const chat = await message.getChat();
 
@@ -57,8 +54,6 @@ const handleQueueItem = async (message, attempt = 1) => {
 
 		const responseStartTime = Date.now();
 
-		const responseEndTime = Date.now();
-
 		const [
 			response,
 			// responseImageBase64Data
@@ -67,7 +62,7 @@ const handleQueueItem = async (message, attempt = 1) => {
 			// getAiImageBase64(formattedPrompt)
 		]);
 
-		setConversationDetails(remoteId, response.conversationId);
+		setConversationDetails(remoteId, response.chatConversationId);
 
 		const audioData = await getAudioData(remoteId);
 
@@ -83,20 +78,25 @@ const handleQueueItem = async (message, attempt = 1) => {
 
 		} else {
 
-			/**
-			 * @type {WAWebJS.MessageSendOptions}
-			 */
-			let messageProps = {};
+			let messageProps: MessageSendOptions = {};
 
-			// if (responseImageBase64Data) {
+			// if (responseImageBase64Data.image) {
 
-			// 	const messageMedia = getMessageMediaFromBase64('image/jpeg', responseImageBase64Data.split(',')[1]);
+			// 	const messageMedia = getMessageMediaFromBase64('image/jpeg', responseImageBase64Data.image.split(',')[1]);
 
 			// 	messageProps.media = messageMedia
 			// }
 
-			await message.reply(`🤖 ${response.promptResponse}`, undefined, messageProps);
+			if (response.modelSlug === 'gpt-4o') {
+
+				modelEmoji = "👾";
+			}
+
+
+			await message.reply(`${modelEmoji} ${response.promptResponse}`, undefined, messageProps);
 		}
+
+		const responseEndTime = Date.now();
 
 		const requestDuration = (responseEndTime - responseStartTime);
 
@@ -106,24 +106,19 @@ const handleQueueItem = async (message, attempt = 1) => {
 
 		logInfo(`Request handled in ${requestDuration / 1000} seconds. Response length: ${response?.promptResponse?.length} characters`);
 
+		const contact = await message.getContact();
+
 		storePrompt(
-			message._data.notifyName,
+			contact.pushname,
 			remoteId,
 			formattedPrompt,
 			response.promptResponse,
 			requestDuration,
 		);
 
-		// if (isLooping(remoteId)) {
-
-		// 	newMessage.body = response.promptResponse;
-
-		// 	await addMessageToQueue(newMessage);
-		// }
-
 	} catch (error) {
 
-		logError(`Error handling queue item (attempt ${attempt})`, error);
+		logError(`Error handling queue item (attempt ${attempt})`, error as string);
 
 		if(attempt < maxAttempts) {
 
@@ -133,7 +128,7 @@ const handleQueueItem = async (message, attempt = 1) => {
 
 					await handleQueueItem(message, attempt + 1);
 
-					resolve();
+					resolve(true);
 
 				}, itemAttemptDelay);
 			})
@@ -141,16 +136,13 @@ const handleQueueItem = async (message, attempt = 1) => {
 			return;
 		}
 
-		await message.reply(`🤖 Oops, something went wrong 😫 (${maxAttempts} attempts).`);
+		await message.reply(`${modelEmoji} Oops, something went wrong 😫 (${maxAttempts} attempts).`);
 
 		await message.react('❌');
 	}
 }
 
-/**
- * @param {WAWebJS.Message} message
- */
-export const addMessageToQueue = (message) => {
+export const addMessageToQueue = (message: Message) => {
 
 	messageProxy = message;
 
@@ -160,6 +152,6 @@ export const addMessageToQueue = (message) => {
 
 		await handleQueueItem(message);
 
-		callback();
+		callback?.();
 	});
 }

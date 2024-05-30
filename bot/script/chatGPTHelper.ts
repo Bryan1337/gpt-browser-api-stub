@@ -1,11 +1,11 @@
-import { logInfo } from './logHelper.js';
-import { getContext } from './contextHelper.js';
-import { getLocalResponse } from './requestHelper.js';
+import { logInfo } from './logHelper';
+import { getContext } from './contextHelper';
+import { ConversationDetails, getLocalResponse } from './requestHelper';
 import dotenv from 'dotenv';
 /** Handle dotenv configs before importing any other modules */
 dotenv.config();
 
-export const getChatGPTResponse = async (prompt, conversationDetails = {}) => {
+export const getChatGPTResponse = async (prompt: string, conversationDetails: ConversationDetails) => {
 
 	const { whatsappIdentifier } = conversationDetails;
 

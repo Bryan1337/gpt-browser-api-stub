@@ -4,74 +4,83 @@ import gtts from 'node-gtts';
 import { v4 as uuidv4 } from "uuid";
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { createFileIfNotExists } from './fileHelper.js';
-import { logInfo } from './logHelper.js';
+import { createFileIfNotExists } from './fileHelper';
+import { logInfo } from './logHelper';
+
+declare module 'node-gtts' {
+
+}
 
 dotenv.config();
 
-export const supportedLanguages = [
-	"af",
-	"sq",
-	"ar",
-	"hy",
-	"ca",
-	"zh",
-	"zh-cn",
-	"zh-tw",
-	"zh-yue",
-	"hr",
-	"cs",
-	"da",
-	"nl",
-	"en",
-	"en-au",
-	"en-uk",
-	"en-us",
-	"eo",
-	"fi",
-	"fr",
-	"de",
-	"el",
-	"ht",
-	"hi",
-	"hu",
-	"is",
-	"id",
-	"it",
-	"ja",
-	"ko",
-	"la",
-	"lv",
-	"mk",
-	"no",
-	"pl",
-	"pt",
-	"pt-br",
-	"ro",
-	"ru",
-	"sr",
-	"sk",
-	"es",
-	"es-es",
-	"es-us",
-	"sw",
-	"sv",
-	"ta",
-	"th",
-	"tr",
-	"vi",
-	"cy"
-];
+export enum SupportedLanguage {
+	AF = "af",
+	SQ = "sq",
+	AR = "ar",
+	HY = "hy",
+	CA = "ca",
+	ZH = "zh",
+	ZH_CN = "zh-cn",
+	ZH_TW = "zh-tw",
+	ZH_YUE = "zh-yue",
+	HR = "hr",
+	CS = "cs",
+	DA = "da",
+	NL = "nl",
+	EN = "en",
+	EN_AU = "en-au",
+	EN_UK = "en-uk",
+	EN_US = "en-us",
+	EO = "eo",
+	FI = "fi",
+	FR = "fr",
+	DE = "de",
+	EL = "el",
+	HT = "ht",
+	HI = "hi",
+	HU = "hu",
+	IS = "is",
+	ID = "id",
+	IT = "it",
+	JA = "ja",
+	KO = "ko",
+	LA = "la",
+	LV = "lv",
+	MK = "mk",
+	NO = "no",
+	PL = "pl",
+	PT = "pt",
+	PT_BR = "pt-br",
+	RO = "ro",
+	RU = "ru",
+	SR = "sr",
+	SK = "sk",
+	ES = "es",
+	ES_ES = "es-es",
+	ES_US = "es-us",
+	SW = "sw",
+	SV = "sv",
+	TA = "ta",
+	TH = "th",
+	TR = "tr",
+	VI = "vi",
+	C = "cy"
+}
+
+interface EnabledAudioEntry {
+	id: string;
+	language: SupportedLanguage;
+}
 
 const enabledAudioPath = `${process.cwd()}${process.env.ENABLED_AUDIO_PATH}`;
 
 createFileIfNotExists(enabledAudioPath);
 
-export const getAudioData = async (id) => {
+export const getAudioData = async (id: string) => {
 
 	const enabledAudio = fs.readFileSync(enabledAudioPath);
 
-	const enabledAudioMap = JSON.parse(enabledAudio);
+	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(enabledAudio.toString());
 
 	const enabledAudioIds = enabledAudioMap.map(enabledAudio => enabledAudio.id);
 
@@ -85,11 +94,13 @@ export const getAudioData = async (id) => {
 	return false;
 }
 
-export const enableAudioResponse = async (id, language) => {
+export const enableAudioResponse = async (id: string, language: string) => {
+
+	const sanitizedLanguage = language.toLowerCase() as SupportedLanguage;
 
 	const enabledAudio = fs.readFileSync(enabledAudioPath);
 
-	const enabledAudioMap = JSON.parse(enabledAudio);
+	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(enabledAudio.toString());
 
 	const enabledAudioIds = enabledAudioMap.map(enabledAudio => enabledAudio.id);
 
@@ -99,7 +110,7 @@ export const enableAudioResponse = async (id, language) => {
 
 		enabledAudioMap.push({
 			id,
-			language,
+			language: sanitizedLanguage,
 		});
 
 		logInfo('Adding new enabled audio map entry', id, language);
@@ -110,7 +121,7 @@ export const enableAudioResponse = async (id, language) => {
 
 		enabledAudioMap[enabledAudioIndex] = {
 			id,
-			language,
+			language: sanitizedLanguage,
 		};
 
 		logInfo('Updating enabled audio map entry', id, language);
@@ -121,11 +132,11 @@ export const enableAudioResponse = async (id, language) => {
 	return true;
 }
 
-export const disableAudioResponse = async (id) => {
+export const disableAudioResponse = async (id: string) => {
 
 	const enabledAudio = fs.readFileSync(enabledAudioPath);
 
-	const enabledAudioMap = JSON.parse(enabledAudio);
+	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(enabledAudio.toString());
 
 	const enabledAudioIds = enabledAudioMap.map(enabledAudio => enabledAudio.id);
 
@@ -144,7 +155,7 @@ export const disableAudioResponse = async (id) => {
 
 }
 
-export const getAudioFilePath = async (text, language) => {
+export const getAudioFilePath = async (text: string, language: string) : Promise<string> => {
 
 	const gttsInstance = gtts(language);
 
@@ -152,7 +163,7 @@ export const getAudioFilePath = async (text, language) => {
 
 		try {
 
-			const filepath = `${process.cwd()}/${uuidv4()}.wav`;
+			const filepath = `${process.cwd()}/${process.env.AUDIO_FOLDER}/${uuidv4()}.wav`;
 
 			gttsInstance.save(filepath, text, () => {
 
@@ -166,7 +177,7 @@ export const getAudioFilePath = async (text, language) => {
 	})
 }
 
-export const removeAudioFile = async (filepath) => {
+export const removeAudioFile = async (filepath: string) => {
 
 	return fs.unlinkSync(filepath);
 }

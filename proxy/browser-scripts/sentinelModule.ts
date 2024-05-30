@@ -71,7 +71,7 @@ const sentinelModule: SentinelModuleCall = async () => {
 
 	const getConfig = (): Array<string|number> => ([
 		(screen.height + screen.width + 1),
-		"" + new Date(),
+		`${new Date()}`,
 		performance.memory.jsHeapSizeLimit / 8,
 		Math.random(),
 		navigator.userAgent,

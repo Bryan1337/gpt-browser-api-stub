@@ -14,6 +14,13 @@ interface RequestsModuleProps {
 	baseUrl: string;
 }
 
+enum ResponseCodes {
+	OK = 200,
+	CONVERSATION_TOO_LONG = 413,
+	TOO_MANY_REQUESTS = 429,
+}
+
+
 export type RequestsModuleCall = (props: RequestsModuleProps) => Promise<RequestsModule>;
 
 const requestsModule: RequestsModuleCall = async ({
@@ -74,8 +81,9 @@ const requestsModule: RequestsModuleCall = async ({
 		return baseGetRequest(`/backend-api/conversation/${conversationId}`);
 	}
 
-	const chatCompletionRequest = async ({ requirementsResponseToken, enforcementToken, conversationId, newMessageId, prompt, parentMessageId, websocketRequestId }) => {
-		return baseRequest(`/backend-api/conversation`, {
+	const chatCompletionRequest = async (chatCompletionData) => {
+		const { requirementsResponseToken, enforcementToken, conversationId, newMessageId, prompt, parentMessageId, websocketRequestId } = chatCompletionData;
+		const chatCompletionResponse = await baseRequest(`/backend-api/conversation`, {
 			method: 'POST',
 			headers: {
 				'accept': 'text/event-stream',
@@ -110,7 +118,7 @@ const requestsModule: RequestsModuleCall = async ({
 						"metadata": {}
 					}
 				],
-				"model": "text-davinci-002-render-sha",
+				"model": "auto",
 				"parent_message_id": parentMessageId,
 				"reset_rate_limits": false,
 				"suggestions": [],
@@ -118,6 +126,17 @@ const requestsModule: RequestsModuleCall = async ({
 				"websocket_request_id": websocketRequestId,
 			}
 		});
+
+		if (chatCompletionResponse.status === ResponseCodes.CONVERSATION_TOO_LONG) {
+			delete chatCompletionData.conversationId;
+			return await chatCompletionRequest(chatCompletionData)
+		}
+
+		if (chatCompletionResponse.status === ResponseCodes.TOO_MANY_REQUESTS) {
+			throw new Error("Too many requests 😫");
+		}
+
+		return chatCompletionResponse;
 	}
 
 	await chatAuthRequest();

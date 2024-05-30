@@ -1,18 +1,16 @@
 import fs from 'fs';
-import { createFileIfNotExists } from './fileHelper.js';
+import { createFileIfNotExists } from './fileHelper';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const accessKeyMapPath = `${process.cwd()}${process.env.ACCESS_KEYS_PATH}`;
+const accessKeyMapPath = createFileIfNotExists(`${process.cwd()}${process.env.ACCESS_KEYS_PATH}`);
 
-createFileIfNotExists(accessKeyMapPath);
-
-export const validateAccessKey = (key) => {
+export const validateAccessKey = (key: string) => {
 
 	const accessKeys = fs.readFileSync(accessKeyMapPath);
 
-	const accessKeyMap = JSON.parse(accessKeys);
+	const accessKeyMap = JSON.parse(accessKeys.toString());
 
 	if (accessKeyMap.includes(`${key}`.trim())) {
 

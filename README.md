@@ -7,7 +7,6 @@
 
 Copy the .env.example file to .env and fill in the values
 
-- `ACCESS_TOKEN` you can find this by navigating to https://chat.openai.com/api/auth/session and copying the `accessToken` value from the JSON object.
 - `USER_PHONE_ID` the phone number you want to run the whatsapp bot from. When running this for the first time you'll see some QR codes in the console. You can scan these using a couple methods:
 	- Using an actual phone which runs whatsapp and has the actual number linked to it
 	- Using a virtual environment which you can use to emulate a virtual camera and scan the QR codes using the virtual camera
@@ -27,7 +26,7 @@ Responses are queued if there are multiple requests simultaneously. The bot will
 
 The responses are identical to a chatGPT window (as it practically IS chatGPT) and will keep track of conversations based on a `gptConversationId` to make sure each group or conversation retains their own message chain.
 
-Use !help to get a list of all the commands. You can enable/disable certain commands by adjusting the `getCommands()` function in `commandHelper.js`
+Use !help to get a list of all the commands. You can enable/disable certain commands by adjusting the `getCommands()` function in `commandHelper.ts`
 
 ### Features
 

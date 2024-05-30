@@ -4,7 +4,7 @@
   "description": "ChatGPT Whatsapp bot",
   "main": "index.js",
   "scripts": {
-    "local": "node index.js"
+    "local": "tsx index.ts"
   },
   "keywords": [
     "chatgpt",
@@ -24,6 +24,10 @@
   },
   "type": "module",
   "devDependencies": {
-    "dotenv": "^16.0.3"
+    "@types/qrcode-terminal": "^0.12.2",
+    "@types/uuid": "^9.0.8",
+    "dotenv": "^16.0.3",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.5"
   }
 }

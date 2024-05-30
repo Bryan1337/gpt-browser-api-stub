@@ -1,21 +1,21 @@
 import { RequestsModuleCall } from './browser-scripts/requestsModule';
 import { SentinelModuleCall } from './browser-scripts/sentinelModule';
-import { importBrowserScripts } from './scripts/browserScriptImportHelper.ts';
+import { StreamModuleCall } from './browser-scripts/streamModule';
+import { importBrowserScripts } from './scripts/browserScriptImportHelper';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { executablePath } from 'puppeteer';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from "uuid";
-import { getRandomValueBetween } from './scripts/valueHelper.ts';
-import { log, logError, logWarning } from './scripts/logHelper.ts';
-import { getServer } from './scripts/serverHelper.ts';
-import { StreamModuleCall } from './browser-scripts/streamModule.ts';
+import { getRandomValueBetween } from './scripts/valueHelper';
+import { log, logError, logWarning } from './scripts/logHelper';
+import { getServer } from './scripts/serverHelper';
 
 declare global {
 	interface Window {
 		isQueueing: boolean;
-		requestsModule: RequestsModuleCall;
 		streamModule: StreamModuleCall;
+		requestsModule: RequestsModuleCall;
 		sentinelModule: SentinelModuleCall;
 	}
 }
@@ -54,7 +54,7 @@ server.post('/conversations', async (req, res) => {
 
 		await importBrowserScripts(newPage);
 
-		const newMessageId = uuidv4().split('').map((c, i) => i <= 2 ? 'a' : c).join('');
+		const newMessageId = uuidv4().split('').map((c: string, i: number) => i <= 2 ? 'a' : c).join('');
 		const parentMessageId = uuidv4();
 		const websocketRequestId = uuidv4();
 
@@ -66,8 +66,8 @@ server.post('/conversations', async (req, res) => {
 
 				window.isQueueing = true;
 
-				const requestsModule = window.requestsModule;
 				const streamModule = window.streamModule;
+				const requestsModule = window.requestsModule;
 				const sentinelModule = window.sentinelModule;
 
 				const sentinelInstance = await sentinelModule();
@@ -80,15 +80,15 @@ server.post('/conversations', async (req, res) => {
 					chatRequirementsRequestToken,
 				});
 
-				const { current_node: conversationIdJson } = await query.chatConversationIdRequest({
+				const conversationIdResponse = await query.chatConversationIdRequest({
 					conversationId
 				});
 
-				parentMessageId = conversationIdJson.current_node;
+				parentMessageId = conversationIdResponse?.current_node || parentMessageId;
 
 				const enforcementToken = await sentinelInstance.getEnforcementToken(proofofwork);
 
-				const conversationData = await query.chatCompletionRequest({
+				const chatCompletionResponse = await query.chatCompletionRequest({
 					requirementsResponseToken,
 					enforcementToken,
 					conversationId,
@@ -98,11 +98,12 @@ server.post('/conversations', async (req, res) => {
 					websocketRequestId,
 				});
 
-				const response = await streamModule(conversationData);
+				const { response, modelSlug, chatConversationId } = await streamModule(chatCompletionResponse);
 
 				return {
 					promptResponse: response,
-					conversationId,
+					modelSlug,
+					chatConversationId,
 				};
 
 			} catch (error) {
@@ -131,10 +132,10 @@ server.post('/conversations', async (req, res) => {
 
 	} catch (error) {
 
-		logError(error);
+		logError((error as Error).message);
 
 		res.json({
-			error: error.message,
+			error: (error as Error).message,
 		});
 
 	}
@@ -162,6 +163,7 @@ setInterval(async () => {
 	});
 
 	if(!didReload) {
+
 		logWarning('Reload prevented due to request in progress...');
 	}
 

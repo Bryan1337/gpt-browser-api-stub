@@ -1,11 +1,21 @@
 
-export type StreamModuleCall = (responseData: Response) => Promise<string>;
+export type StreamModuleResponseData = {
+	modelSlug: string;
+	response: string;
+	chatConversationId: number;
+}
+
+export type StreamModuleCall = (responseData: Response) => Promise<StreamModuleResponseData>;
 
 const streamModule: StreamModuleCall = async (responseData) => {
 
 	const streamFinishedIndicator = '[DONE]';
 
 	let promptResponse = '';
+
+	let modelSlug = '';
+
+	let conversationId = 0;
 
 	const handleChunk = (chunk) => {
 
@@ -18,9 +28,13 @@ const streamModule: StreamModuleCall = async (responseData) => {
 
 			const data = JSON.parse(chunk.substring(5));
 
+			modelSlug = data.message.metadata.model_slug;
+
 			if (data.message.content.parts[0] === promptResponse) {
 				return;
 			}
+
+			conversationId = data.conversation_id;
 
 			promptResponse = data.message.content.parts[0];
 
@@ -42,7 +56,7 @@ const streamModule: StreamModuleCall = async (responseData) => {
 
 	if(!readableStream) {
 
-		return null;
+		throw new Error('No readable stream found in body data...');
 	}
 
 	const decoder = new TextDecoder();
@@ -66,7 +80,11 @@ const streamModule: StreamModuleCall = async (responseData) => {
 	const reader = readableStream.getReader();
 	const finalResponse = await readStream(reader);
 
-	return finalResponse;
+	return {
+		response: finalResponse,
+		modelSlug,
+		chatConversationId: conversationId,
+	};
 }
 
 export default streamModule

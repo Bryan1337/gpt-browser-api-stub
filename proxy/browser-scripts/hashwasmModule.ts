@@ -1,4 +1,4 @@
 import fs from 'fs';
 
-const hashwasmModule = fs.readFileSync(`${process.cwd()}/compiled/hashWasmModule.compiled.js`)
+const hashwasmModule = fs.readFileSync(`${process.cwd()}/compiled/hashWasmModule.compiled.ts`)
 export default hashwasmModule;

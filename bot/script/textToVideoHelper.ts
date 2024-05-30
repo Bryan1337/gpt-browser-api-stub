@@ -1,14 +1,12 @@
 import dotenv from 'dotenv';
-import { getRandomInt } from './randomHelper.js';
-import { logError, logInfo, logWarning } from './logHelper.js';
-import { createFileIfNotExists } from './fileHelper.js';
+import { getRandomInt } from './randomHelper';
+import { logError, logInfo, logWarning } from './logHelper';
+import { createFileIfNotExists } from './fileHelper';
 import fs from 'fs';
 
 dotenv.config();
 
-const tokenMapPath = `${process.cwd()}${process.env.RUNAWAY_API_KEYS_PATH}`;
-
-createFileIfNotExists(tokenMapPath);
+const tokenMapPath = createFileIfNotExists(`${process.cwd()}${process.env.RUNAWAY_API_KEYS_PATH}`);
 
 const baseUrl = 'https://api.runwayml.com/v1';
 
@@ -18,7 +16,7 @@ const getToken = async () => {
 
 	const tokens = fs.readFileSync(tokenMapPath);
 
-	const tokenMap = JSON.parse(tokens);
+	const tokenMap = JSON.parse(tokens.toString());
 
 	const [ token ] = tokenMap;
 
@@ -30,11 +28,11 @@ const getToken = async () => {
 	return token;
 }
 
-const deleteToken = async (token) => {
+const deleteToken = async (token: string) => {
 
 	const tokens = fs.readFileSync(tokenMapPath);
 
-	const tokenMap = JSON.parse(tokens);
+	const tokenMap = JSON.parse(tokens.toString());
 
 	const index = tokenMap.indexOf(token);
 
@@ -47,7 +45,7 @@ const deleteToken = async (token) => {
 }
 
 
-const getTeamId = async (token) => {
+const getTeamId = async (token: string) => {
 
 	const teamsUrl = `${baseUrl}/teams`;
 
@@ -75,7 +73,7 @@ const getTeamId = async (token) => {
 	throw new Error('Failed to get team id');
 }
 
-export const getVideo = async (prompt = '', imageUrl = null) => {
+export const getVideo = async (prompt = '', imageUrl ?: string) : Promise<string> => {
 
 	logInfo('Generating video from prompt:', prompt);
 
@@ -94,7 +92,8 @@ export const getVideo = async (prompt = '', imageUrl = null) => {
 				upscale: false,
 				text_prompt: prompt,
 				watermark: true,
-				mode: "gen2"
+				mode: "gen2",
+				image_prompt: ''
 			},
 			name: `Gen-2 ${prompt.substring(0, 30)}, ${seed}`,
 			assetGroupName: "Gen-2"
@@ -106,10 +105,6 @@ export const getVideo = async (prompt = '', imageUrl = null) => {
 
 		params.options.gen2Options.image_prompt = imageUrl;
 	}
-
-	console.log(JSON.stringify({
-		params
-	}))
 
 	const response = await fetch(`${baseUrl}/tasks`, {
 		method: 'POST',
@@ -152,7 +147,7 @@ export const getVideo = async (prompt = '', imageUrl = null) => {
 	throw new Error('Task failed during initial request');
 }
 
-const pollVideo = async (taskId, teamId, token, prompt, imageUrl, attempt = 1) => {
+const pollVideo = async (taskId: string, teamId: string, token: string, prompt: string, imageUrl: string = '', attempt = 1): Promise<string> => {
 
 	const url = `${baseUrl}/tasks/${taskId}?asTeamId=${teamId}`;
 
