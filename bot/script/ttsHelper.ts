@@ -7,10 +7,6 @@ import dotenv from 'dotenv';
 import { createFileIfNotExists } from './fileHelper';
 import { logInfo } from './logHelper';
 
-declare module 'node-gtts' {
-
-}
-
 dotenv.config();
 
 export enum SupportedLanguage {
