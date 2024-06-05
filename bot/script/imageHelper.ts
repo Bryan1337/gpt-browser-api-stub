@@ -1,12 +1,12 @@
-import dotenv from 'dotenv';
-import { getRandomString } from './randomHelper';
-import { logError, logInfo } from './logHelper';
-import { MessageMedia } from 'whatsapp-web.js';
+import dotenv from "dotenv";
+import { getRandomString } from "./randomHelper";
+import { logError, logInfo } from "./logHelper";
+import { MessageMedia } from "whatsapp-web.js";
 
 dotenv.config();
 
 enum PlayGroundAIModel {
-	SDXL = 'stable-diffusion-xl'
+	SDXL = "stable-diffusion-xl",
 }
 
 interface AIImageSuccessResponse {
@@ -14,13 +14,13 @@ interface AIImageSuccessResponse {
 }
 
 interface AIImageErrorResponse {
-	error: string
+	error: string;
 }
 
-type AIImageResponse = AIImageErrorResponse | AIImageSuccessResponse
+type AIImageResponse = AIImageErrorResponse | AIImageSuccessResponse;
 
 interface PlayGroundAIImageEditProps extends PlayGroundAIProps {
-	init_image: string
+	init_image: string;
 	mode: number;
 	start_schedule: number;
 	mask_strength: number;
@@ -33,28 +33,30 @@ interface PlayGroundAIProps {
 	sampler: number;
 	cfg_scale: number;
 	guidance_scale: number;
-	strength: number,
-	steps: number,
-	hide: boolean,
-	isPrivate: boolean,
-	modelType: PlayGroundAIModel,
-	generateVariants: boolean,
+	strength: number;
+	steps: number;
+	hide: boolean;
+	isPrivate: boolean;
+	modelType: PlayGroundAIModel;
+	generateVariants: boolean;
 	prompt: string;
-	negativePrompt: string,
-	initImageFromPlayground: boolean,
+	negativePrompt: string;
+	initImageFromPlayground: boolean;
 	batchId: string;
 	seed: number;
 }
 
 enum PlayGroundAIErrorCodes {
 	BadGateway = "BAD_GATEWAY",
-	RateLimited = "RATE_LIMITED"
+	RateLimited = "RATE_LIMITED",
 }
 
 const maxImageFetchAttemptCount = 5;
 
-const getPlayGroundAIBodyData = (prompt: string, initialMedia?: MessageMedia): PlayGroundAIProps | PlayGroundAIImageEditProps => {
-
+const getPlayGroundAIBodyData = (
+	prompt: string,
+	initialMedia?: MessageMedia
+): PlayGroundAIProps | PlayGroundAIImageEditProps => {
 	const bodyData: PlayGroundAIProps = {
 		width: 512,
 		height: 512,
@@ -73,10 +75,9 @@ const getPlayGroundAIBodyData = (prompt: string, initialMedia?: MessageMedia): P
 		seed: (Math.random() * 1e9) >> 0,
 		prompt,
 		initImageFromPlayground: false,
-	}
+	};
 
-	if (initialMedia)  {
-
+	if (initialMedia) {
 		const imageBodyData = bodyData as PlayGroundAIImageEditProps;
 		imageBodyData.init_image = `data:${initialMedia.mimetype};base64,${initialMedia.data}`;
 		imageBodyData.sampler = 1;
@@ -92,41 +93,45 @@ const getPlayGroundAIBodyData = (prompt: string, initialMedia?: MessageMedia): P
 	}
 
 	return bodyData as PlayGroundAIProps;
-}
+};
 
-export const getAiImageBase64 = async (prompt: string, initialMedia?: MessageMedia, attemptCount = 1): Promise<AIImageResponse> => {
-
+export const getAiImageBase64 = async (
+	prompt: string,
+	initialMedia?: MessageMedia,
+	attemptCount = 1
+): Promise<AIImageResponse> => {
 	try {
-
-		logInfo(`Fetching base64 image data for prompt (Attempt ${attemptCount})`, prompt);
+		logInfo(
+			`Fetching base64 image data for prompt (Attempt ${attemptCount})`,
+			prompt
+		);
 
 		const bodyData = getPlayGroundAIBodyData(prompt, initialMedia);
 
-		const response = await fetch('https://playgroundai.com/api/models', {
+		const response = await fetch("https://playgroundai.com/api/models", {
 			headers: {
-				'content-type': "application/json",
-				'cookie': `__Secure-next-auth.session-token=${process.env.PLAYGROUND_AI_SESSION_TOKEN}`,
+				"content-type": "application/json",
+				cookie: `__Secure-next-auth.session-token=${process.env.PLAYGROUND_AI_SESSION_TOKEN}`,
 			},
-			method: 'POST',
+			method: "POST",
 			body: JSON.stringify(bodyData),
-		})
+		});
 
 		const jsonResponse = await response.json();
 
 		if (jsonResponse.error) {
-
-			if([
-				PlayGroundAIErrorCodes.RateLimited,
-				PlayGroundAIErrorCodes.BadGateway,
-			].includes(jsonResponse.errorCode)) {
-
+			if (
+				[
+					PlayGroundAIErrorCodes.RateLimited,
+					PlayGroundAIErrorCodes.BadGateway,
+				].includes(jsonResponse.errorCode)
+			) {
 				return { error: jsonResponse.error };
 			}
 
-			logError('Error from playgroundAI API', jsonResponse.error);
+			logError("Error from playgroundAI API", jsonResponse.error);
 
 			if (attemptCount < maxImageFetchAttemptCount) {
-
 				return getAiImageBase64(prompt, initialMedia, attemptCount + 1);
 			}
 
@@ -138,13 +143,11 @@ export const getAiImageBase64 = async (prompt: string, initialMedia?: MessageMed
 		return {
 			image: image.url,
 		};
-
 	} catch (error) {
-
-		logError('Error fetching base64 image data', error);
+		logError("Error fetching base64 image data", error);
 
 		return {
-			error
+			error,
 		};
 	}
-}
+};

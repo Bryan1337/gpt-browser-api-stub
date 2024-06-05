@@ -1,11 +1,9 @@
-
-
-import gtts from 'node-gtts';
+import gtts from "node-gtts";
 import { v4 as uuidv4 } from "uuid";
-import fs from 'fs';
-import dotenv from 'dotenv';
-import { createFileIfNotExists } from './fileHelper';
-import { logInfo } from './logHelper';
+import fs from "fs";
+import dotenv from "dotenv";
+import { createFileIfNotExists } from "./fileHelper";
+import { logInfo } from "./logHelper";
 
 dotenv.config();
 
@@ -60,7 +58,7 @@ export enum SupportedLanguage {
 	TH = "th",
 	TR = "tr",
 	VI = "vi",
-	C = "cy"
+	C = "cy",
 }
 
 interface EnabledAudioEntry {
@@ -73,107 +71,118 @@ const enabledAudioPath = `${process.cwd()}${process.env.ENABLED_AUDIO_PATH}`;
 createFileIfNotExists(enabledAudioPath);
 
 export const getAudioData = async (id: string) => {
-
 	const enabledAudio = fs.readFileSync(enabledAudioPath);
 
-	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(enabledAudio.toString());
+	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(
+		enabledAudio.toString()
+	);
 
-	const enabledAudioIds = enabledAudioMap.map(enabledAudio => enabledAudio.id);
+	const enabledAudioIds = enabledAudioMap.map(
+		(enabledAudio) => enabledAudio.id
+	);
 
 	const enabledAudioIndex = enabledAudioIds.indexOf(id);
 
 	if (enabledAudioIndex !== -1) {
-
 		return enabledAudioMap[enabledAudioIndex];
 	}
 
 	return false;
-}
+};
 
 export const enableAudioResponse = async (id: string, language: string) => {
-
 	const sanitizedLanguage = language.toLowerCase() as SupportedLanguage;
 
 	const enabledAudio = fs.readFileSync(enabledAudioPath);
 
-	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(enabledAudio.toString());
+	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(
+		enabledAudio.toString()
+	);
 
-	const enabledAudioIds = enabledAudioMap.map(enabledAudio => enabledAudio.id);
+	const enabledAudioIds = enabledAudioMap.map(
+		(enabledAudio) => enabledAudio.id
+	);
 
 	const enabledAudioIndex = enabledAudioIds.indexOf(id);
 
 	if (enabledAudioIndex === -1) {
-
 		enabledAudioMap.push({
 			id,
 			language: sanitizedLanguage,
 		});
 
-		logInfo('Adding new enabled audio map entry', id, language);
-
+		logInfo("Adding new enabled audio map entry", id, language);
 	} else {
-
-		const enabledAudioIndex = enabledAudioMap.findIndex(enabledAudio => enabledAudio.id === id);
+		const enabledAudioIndex = enabledAudioMap.findIndex(
+			(enabledAudio) => enabledAudio.id === id
+		);
 
 		enabledAudioMap[enabledAudioIndex] = {
 			id,
 			language: sanitizedLanguage,
 		};
 
-		logInfo('Updating enabled audio map entry', id, language);
+		logInfo("Updating enabled audio map entry", id, language);
 	}
 
-	fs.writeFileSync(enabledAudioPath, JSON.stringify(enabledAudioMap, null, 2));
+	fs.writeFileSync(
+		enabledAudioPath,
+		JSON.stringify(enabledAudioMap, null, 2)
+	);
 
 	return true;
-}
+};
 
 export const disableAudioResponse = async (id: string) => {
-
 	const enabledAudio = fs.readFileSync(enabledAudioPath);
 
-	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(enabledAudio.toString());
+	const enabledAudioMap: EnabledAudioEntry[] = JSON.parse(
+		enabledAudio.toString()
+	);
 
-	const enabledAudioIds = enabledAudioMap.map(enabledAudio => enabledAudio.id);
+	const enabledAudioIds = enabledAudioMap.map(
+		(enabledAudio) => enabledAudio.id
+	);
 
 	const enabledAudioIndex = enabledAudioIds.indexOf(id);
 
 	if (enabledAudioIndex !== -1) {
+		const newEnabledAudio = [...enabledAudioMap].filter(
+			(enabledAudio) => enabledAudio.id !== id
+		);
 
-		const newEnabledAudio = [...enabledAudioMap].filter(enabledAudio => enabledAudio.id !== id);
-
-		fs.writeFileSync(enabledAudioPath, JSON.stringify(newEnabledAudio, null, 2));
+		fs.writeFileSync(
+			enabledAudioPath,
+			JSON.stringify(newEnabledAudio, null, 2)
+		);
 
 		return true;
 	}
 
 	return false;
+};
 
-}
-
-export const getAudioFilePath = async (text: string, language: string) : Promise<string> => {
-
+export const getAudioFilePath = async (
+	text: string,
+	language: string
+): Promise<string> => {
 	const gttsInstance = gtts(language);
 
 	return new Promise((resolve, reject) => {
-
 		try {
-
-			const filepath = `${process.cwd()}/${process.env.AUDIO_FOLDER}/${uuidv4()}.wav`;
+			const filepath = `${process.cwd()}/${
+				process.env.AUDIO_FOLDER
+			}/${uuidv4()}.wav`;
 
 			gttsInstance.save(filepath, text, () => {
-
 				resolve(filepath);
-			})
-
+			});
 		} catch (error) {
-
 			reject(error);
 		}
-	})
-}
+	});
+};
 
 export const removeAudioFile = async (filepath: string) => {
-
 	return fs.unlinkSync(filepath);
-}
+};
