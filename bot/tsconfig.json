@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
-		"baseUrl": "./",
 		"target": "ESNext",
 		"module": "ESNext",
 		"checkJs": true,
@@ -24,11 +23,14 @@
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
 		"declaration": false,
-		"importHelpers": true
+		"baseUrl": ".",
+		"paths": {
+            "@/*": ["src/*"],
+        }
 	},
 	"include": [
-		"./**/*.js",
-		"./**/*.ts",
+		"src/**/*.js",
+		"src/**/*.ts", "../api/scripts/message.ts",
 	],
 	"exclude": [
 		"node_modules"
