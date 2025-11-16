@@ -1,29 +1,19 @@
 import { validateAccessKey } from "@/data_handlers/access_key/validateAccessKey";
 import { addToWhiteList } from "@/data_handlers/whitelist/addToWhitelist";
-import {
-	CommandData,
-	CommandResponse,
-	CommandResponseType,
-} from "@/util/command";
+import { CommandHandleData } from "@/util/command";
 
-export const registerCommand = async (
-	commandData: CommandData
-): Promise<CommandResponse> => {
-	const { text, message } = commandData;
+export const registerCommand = (data: CommandHandleData) => {
+	const { text, message } = data;
 
 	const id = message.from;
 
 	if (validateAccessKey(`${text}`.trim())) {
 		addToWhiteList(id);
 
-		return {
-			type: CommandResponseType.Text,
-			message: `Registered 👌`,
-		};
+		message.react("✅");
+		message.reply(`Registered 👌`);
 	} else {
-		return {
-			type: CommandResponseType.Text,
-			message: `Invalid registration key 🚫`,
-		};
+		message.react("❌");
+		message.reply(`Invalid registration key 🚫`);
 	}
 };

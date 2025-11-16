@@ -1,117 +1,93 @@
-import { getToken } from "@/data_handlers/hailuo_ai/getToken";
+import { CommandHandleData } from "@/util/command";
+import { saveExternalFile, SORA_AI_VIDEOS_PATH } from "@/util/file";
+import { logError } from "@/util/log";
 import {
-	CommandData,
-	CommandResponse,
-	CommandResponseType,
-} from "@/util/command";
-import { HAILUO_AI_VIDEO_FILES_PATH, saveExternalFile } from "@/util/file";
-import { generateVideo, getRenewalToken, pollVideoId } from "@/util/hailuoAi";
-import { logInfo, logWarning } from "@/util/log";
-import { getDurationText, pause } from "@/util/time";
-import {
-	getMessageMediaFromFilePath,
-	getMessageMediaFromUrl,
-} from "@/util/whatsappWeb";
+	getLocalDraftVideoResponse,
+	getLocalPendingVideoResponse,
+	getLocalVideoResponse
+} from "@/util/request";
+import { pause } from "@/util/time";
+import { getMessageMediaFromFilePath } from "@/util/whatsappWeb";
+import { Message, MessageSendOptions } from "whatsapp-web.js";
 
-export const videoCommand = async (
-	commandData: CommandData
-): Promise<CommandResponse> => {
-	const { text, message } = commandData;
+const normalizeProgress = (progress: number | null): number => {
+	if (progress === null || isNaN(progress)) {
+		return 0;
+	}
+
+	const clamped = Math.max(0, Math.min(1, progress));
+
+	return Math.round(clamped * 100 * 100) / 100;
+};
+
+const pollVideo = async (taskId: string, message: Message) => {
+	const response = await getLocalPendingVideoResponse(taskId);
+
+	if ("task" in response && !response.task) {
+		return await getLocalDraftVideoResponse(taskId);
+	}
+
+	if ("progress" in response) {
+		const progress = normalizeProgress(response.progress);
+		message.edit(`🤖 Generating video... (${progress}%)`);
+
+		await pause(10000);
+
+		return await pollVideo(taskId, message);
+	}
+
+	throw new Error(response);
+};
+
+export const videoCommand = async (data: CommandHandleData) => {
+	const { text, message } = data;
 
 	await message.react("🎥");
 
 	if (!text.trim()) {
-		return {
-			type: CommandResponseType.Text,
-			message: "No video prompt given 🤔",
-		};
+		message.reply("No video prompt given 🤔");
+		return;
 	}
 
 	try {
-		const startTime = new Date();
-
-		const baseToken = await getToken();
-
-		if (!baseToken) {
-			throw new Error(`No Hailuo AI tokens available`);
-		}
-
-		const renewalTokenJson = await getRenewalToken(baseToken);
-
-		if (!renewalTokenJson.data.token) {
-			throw new Error(renewalTokenJson);
-		}
-
-		const renewalToken = renewalTokenJson.data.token;
-
-		const generateVideoJson = await generateVideo(text, renewalToken);
-
-		if (generateVideoJson.statusInfo.code === 1000060) {
-			throw new Error(`This content has been flagged`);
-		}
-
-		const videoId = generateVideoJson?.data.id;
-
-		if (!videoId) {
-			throw new Error(generateVideoJson);
-		}
-
-		const progressMessage = await message.reply(
-			`🤖 Generating video. This may take a while (0%)`
+		const { taskId, numVideosRemaining } = await getLocalVideoResponse(
+			text
 		);
 
-		while (true) {
-			const pollVideoJson = await pollVideoId(videoId, renewalToken);
+		const sentMessage = await message.reply("🤖 Generating video...");
 
-			if (pollVideoJson.statusInfo.code === 1000060) {
-				throw new Error(`This content has been flagged`);
-			}
+		const task = await pollVideo(taskId, sentMessage);
 
-			const videos = pollVideoJson?.data.videos ?? [];
+		if (task.kind === "sora_content_violation") {
+			sentMessage.edit(
+				`🤖 Video generation failed: ${task.markdown_reason_str}`
+			);
 
-			const [video] = videos;
-
-			if (!video.videoURL) {
-				logWarning(`Video generating... (${video.percent}%)`);
-
-				await progressMessage.edit(
-					`🤖 Generating video. This may take a while (${video.percent}%)`
-				);
-			}
-
-			if (video.videoURL) {
-				getMessageMediaFromUrl(video.videoURL);
-
-				const localFileUrl = await saveExternalFile(
-					video.videoURL,
-					"mp4",
-					HAILUO_AI_VIDEO_FILES_PATH
-				);
-
-				logInfo(`Retrieved video URL (${video.videoURL})`);
-
-				const endTime = new Date();
-
-				const duration = getDurationText(startTime, endTime);
-
-				progressMessage.edit(`🤖 Video generated in ${duration} 👌`);
-
-				return {
-					type: CommandResponseType.Media,
-					media: getMessageMediaFromFilePath(localFileUrl),
-					message: `*_"${`${text}`.trim()}"_*`,
-					originMessage: progressMessage,
-				};
-			}
-
-			logInfo("Waiting 10 seconds...");
-
-			await pause(10000);
+			await message.react("❌");
+			return;
 		}
+
+		const localFileUrl = await saveExternalFile(
+			task.downloadable_url,
+			"mp4",
+			SORA_AI_VIDEOS_PATH
+		);
+
+		message.react("✅");
+		sentMessage.edit(
+			`🤖 Video generated! ${numVideosRemaining} video generations remaining.`
+		);
+
+		const media = getMessageMediaFromFilePath(localFileUrl);
+		const messageText = `*_"${`${text}`.trim()}"_*`;
+		const messageProps: MessageSendOptions = { media };
+
+		message.reply(messageText, undefined, messageProps);
+		message.react("✅");
 	} catch (error) {
-		return {
-			type: CommandResponseType.Text,
-			message: `Something went wrong (${(error as Error).message})`,
-		};
+		logError(error);
+
+		message.react("❌");
+		message.reply(`Something went wrong (${(error as Error).message})`);
 	}
 };

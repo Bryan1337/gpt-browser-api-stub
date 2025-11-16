@@ -1,44 +1,33 @@
 import { enableAudioResponse } from "@/data_handlers/enabled_audio/enableAudioResponse";
-import {
-	CommandData,
-	CommandResponse,
-	CommandResponseType,
-} from "@/util/command";
-import { SupportedTTSLanguage } from "@/util/tts";
+import { CommandHandleData } from "@/util/command";
+import { getSupportedLanguagesString } from "@/util/tts";
 
-export const enableAudioCommand = async (
-	commandData: CommandData
-): Promise<CommandResponse> => {
-	const { message, text: language } = commandData;
+export const enableAudioCommand = async (data: CommandHandleData) => {
+	const { message, text } = data;
 
-	if (!language) {
-		return {
-			type: CommandResponseType.Text,
-			message: `No language given 🤔. Supported languages are:\n*${Object.values(
-				SupportedTTSLanguage
-			).join(", ")}*`,
-		};
+	const languagesString = getSupportedLanguagesString();
+
+	if (!text) {
+		message.react("❌");
+		message.reply(
+			`No language given 🤔. Supported languages are:\n*${languagesString}*`
+		);
+		return;
 	}
 
-	const isoCode = language.trim();
+	const isoCode = text.trim().toLowerCase();
 
-	if (
-		!Object.values(SupportedTTSLanguage).includes(
-			`${isoCode}`.toLowerCase() as SupportedTTSLanguage
-		)
-	) {
-		return {
-			type: CommandResponseType.Text,
-			message: `Language *${`${isoCode}`.toUpperCase()}* is not supported 🚫. Supported languages are:\n*${Object.keys(
-				SupportedTTSLanguage
-			).join(", ")}*`,
-		};
+	if (languagesString.includes(isoCode)) {
+		enableAudioResponse(message.id.remote, isoCode);
+
+		message.react("✅");
+		message.reply(
+			`Audio responses enabled in language *${isoCode.toUpperCase()}* 👌`
+		);
+	} else {
+		message.react("❌");
+		message.reply(
+			`Language *${isoCode}* is not supported 🚫. Supported languages are:\n*${languagesString}*`
+		);
 	}
-
-	enableAudioResponse(message.id.remote, isoCode);
-
-	return {
-		type: CommandResponseType.Text,
-		message: `Audio responses enabled in language *${isoCode.toUpperCase()}* 👌`,
-	};
 };

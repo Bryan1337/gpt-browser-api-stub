@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"module": "ESNext",
+		"module": "esnext",
 		"checkJs": true,
 		"esModuleInterop": true,
 		"allowImportingTsExtensions": true,
@@ -11,7 +11,7 @@
 		"noImplicitAny": true,
 		"skipLibCheck": true,
 		"extendedDiagnostics": false,
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"downlevelIteration": true,
 		"allowJs": true,
 		"sourceMap": true,
@@ -23,10 +23,9 @@
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
 		"declaration": false,
-		"baseUrl": ".",
 		"paths": {
-            "@/*": ["src/*"],
-        }
+			"@/*": ["./src/*"]
+		}
 	},
 	"include": [
 		"src/**/*.js",

@@ -1,212 +1,220 @@
-interface RequestsModuleRequestProps {
-	method: "POST" | "GET";
-	headers: Record<string, string>;
-	body: Record<string, string>;
-}
+export type RequestsModule = (
+	type: RequestsType
+) => ReturnType<typeof requestsModule>;
 
-type RequestsModuleRequest = (props: any) => Promise<any>;
+type RequestsType = "chat-gpt" | "sora";
 
-type RequestsModule = Record<string, RequestsModuleRequest>;
+const requestsModule = async (type: RequestsType) => {
+	const CHATGPT_BASE_URL = "https://chatgpt.com";
+	const SORA_BASE_URL = "https://sora.chatgpt.com";
 
-interface RequestsModuleProps {
-	baseUrl: string;
-}
+	enum SoraUrl {
+		SESSION = `${SORA_BASE_URL}/api/auth/session`,
+		VIDEO_DRAFTS = `${SORA_BASE_URL}/backend/project_y/profile/drafts`,
+		USAGE = `${SORA_BASE_URL}/backend/nf/check`,
+		CREATE = `${SORA_BASE_URL}/backend/nf/create`,
+		PENDING = `${SORA_BASE_URL}/backend/nf/pending`,
+	}
 
-enum ResponseCodes {
-	OK = 200,
-	CONVERSATION_TOO_LONG = 413,
-	TOO_MANY_REQUESTS = 429,
-}
+	enum ChatGptUrl {
+		SESSION = `${CHATGPT_BASE_URL}/api/auth/session`,
+		CHAT_REQUIREMENTS = `${CHATGPT_BASE_URL}/backend-api/sentinel/chat-requirements`,
+		CONVERSATION = `${CHATGPT_BASE_URL}/backend-api/conversation`,
+		CHAT_COMPLETION = `${CHATGPT_BASE_URL}/backend-api/f/conversation`,
+	}
 
-interface ChatCompletionData {
-	requirementsResponseToken: string;
-	turnstileToken: string;
-	enforcementToken: string;
-	conversationId: string;
-	newMessageId: string;
-	prompt: string;
-	parentMessageId: string;
-	websocketRequestId: string;
-}
+	function getSessionUrl() {
+		return type === "sora" ? SoraUrl.SESSION : ChatGptUrl.SESSION;
+	}
 
-export type RequestsModuleCall = (
-	props: RequestsModuleProps
-) => Promise<RequestsModule>;
+	function getChatCompletionHeaders(data: ChatCompletionData) {
+		return {
+			accept: "text/event-stream",
+			"content-type": "application/json",
+			"oai-device-id": "049fa3f2-7680-46b6-9a91-f29b6731bc37",
+			"oai-language": "en-US",
+			"openai-sentinel-chat-requirements-token":
+				data.requirementsResponseToken,
+			"openai-sentinel-turnstile-token": data.turnstileToken,
+			"openai-sentinel-proof-token": data.enforcementToken,
+			"oai-echo-logs": "0,50179,1,50182,0,50505,1,52811",
+		};
+	}
 
-const requestsModule: RequestsModuleCall = async ({ baseUrl }) => {
-	let accessToken: string | undefined;
+	function getChatCompletionBodyParams(data: ChatCompletionData) {
+		return {
+			action: "next",
+			messages: [
+				{
+					id: data.newMessageId,
+					author: { role: "user" },
+					create_time: new Date().getTime() / 1000,
+					content: { content_type: "text", parts: [data.prompt] },
+					metadata: {
+						selected_github_repos: [],
+						selected_all_github_repos: false,
+						serialization_metadata: { custom_symbol_offsets: [] },
+					},
+				},
+			],
+			conversation_id: data.conversationId,
+			parent_message_id: data.parentMessageId,
+			model: "auto",
+			timezone_offset_min: new Date().getTimezoneOffset(),
+			timezone: "Europe/Amsterdam",
+			conversation_mode: { kind: "primary_assistant" },
+			enable_message_followups: true,
+			system_hints: [],
+			supports_buffering: true,
+			supported_encodings: ["v1"],
+			paragen_cot_summary_display_override: "allow",
+			force_parallel_switch: "auto",
+		};
+	}
 
-	const getRequestParams = (
-		params: Partial<RequestsModuleRequestProps> = {}
-	) => ({
-		method: params.method,
-		headers: {
-			...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-			...(params.headers || {}),
-		},
-		...(params.method === "POST"
-			? {
-					body: JSON.stringify({
-						...(params.body || {}),
-					}),
-			  }
-			: {}),
-	});
+	function getVideoBodyParams(prompt: string) {
+		return {
+			kind: "video",
+			prompt,
+			title: null,
+			orientation: "portrait",
+			size: "small",
+			n_frames: 300,
+			inpaint_items: [],
+			remix_target_id: null,
+			metadata: null,
+			cameo_ids: null,
+			cameo_replacements: null,
+			model: "sy_8",
+			style_id: null,
+			audio_caption: null,
+			audio_transcript: null,
+			video_caption: null,
+			storyboard_id: null,
+		};
+	}
 
-	const baseRequest = async (
-		route: string,
-		params: Record<string, unknown>
-	) => {
-		const requestParams = getRequestParams(params);
-		return await fetch(`${baseUrl}${route}`, requestParams);
-	};
+	function delay(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
-	const baseJsonRequest = async (
-		route: string,
-		params: Record<string, unknown>
-	) => {
-		const response = await baseRequest(route, params);
+	async function request(url: string, params: RequestInit) {
+		return await fetch(url, params);
+	}
+
+	async function jsonRequest(url: string, params: Record<string, unknown>) {
+		const response = await request(url, params);
 		return await response.json();
-	};
+	}
 
-	const baseGetRequest = async (route: string, params = {}) => {
-		return baseJsonRequest(route, {
-			...params,
-			method: "GET",
-		});
-	};
+	async function get(url: string, params = {}) {
+		return jsonRequest(url, { ...params, method: "GET" });
+	}
 
-	const basePostRequest = async (route: string, params = {}) => {
-		return baseJsonRequest(route, {
-			...params,
-			method: "POST",
-		});
-	};
+	async function post(url: string, params = {}) {
+		return jsonRequest(url, { ...params, method: "POST" });
+	}
 
-	const chatAuthRequest = async () => {
-		const authResponse = await baseGetRequest(`/api/auth/session?oai-dm=1`);
-		accessToken = authResponse.accessToken;
-	};
+	async function sessionRequest(): Promise<SessionResponse> {
+		const sessionUrl = getSessionUrl();
+		return get(`${sessionUrl}?oai-dm=1`);
+	}
 
-	const chatRequirementsRequest = async (
+	async function getAccessToken() {
+		const authResponse = await sessionRequest();
+
+		if (!authResponse.accessToken) {
+			await delay(2500);
+			return await getAccessToken();
+		}
+
+		return authResponse.accessToken;
+	}
+
+	const accessToken = await getAccessToken();
+
+	async function chatRequirements(
 		chatRequirementsRequestToken: string
-	) => {
-		return basePostRequest(`/backend-api/sentinel/chat-requirements`, {
-			body: {
-				p: chatRequirementsRequestToken,
+	): Promise<ChatRequirementsResponse> {
+		return post(ChatGptUrl.CHAT_REQUIREMENTS, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+			body: { p: chatRequirementsRequestToken },
+		});
+	}
+
+	async function chatConversationId(
+		conversationId: string
+	): Promise<ChatConversationIdResponse> {
+		return get(`${ChatGptUrl.CONVERSATION}/${conversationId}`, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
 			},
 		});
-	};
+	}
 
-	const chatConversationIdRequest = async (conversationId: string) => {
-		return baseGetRequest(`/backend-api/conversation/${conversationId}`);
-	};
-
-	const getChatCompletionParams = (
-		chatCompletionData: ChatCompletionData
-	) => {
-		const {
-			requirementsResponseToken,
-			turnstileToken,
-			enforcementToken,
-			conversationId,
-			newMessageId,
-			prompt,
-			parentMessageId,
-			websocketRequestId,
-		} = chatCompletionData;
-
-		return {
+	async function chatCompletion(chatCompletionData: ChatCompletionData) {
+		return request(ChatGptUrl.CHAT_COMPLETION, {
 			method: "POST",
 			headers: {
-				accept: "text/event-stream",
-				"content-type": "application/json",
-				"oai-device-id": "049fa3f2-7680-46b6-9a91-f29b6731bc37",
-				"oai-language": "en-US",
-				"openai-sentinel-chat-requirements-token":
-					requirementsResponseToken,
-				/** @todo Add arkose module */
-				// "openai-sentinel-arkose-token": null,
-				"openai-sentinel-turnstile-token": turnstileToken,
-				"openai-sentinel-proof-token": enforcementToken,
-				// "openai-sentinel-token": null,
-				"oai-echo-logs": [
-					0, 11714, 1, 11718, 0, 43698, 1, 44766, 1, 47114, 0, 48230,
-				].join(","),
+				Authorization: `Bearer ${accessToken}`,
+				...getChatCompletionHeaders(chatCompletionData),
 			},
-			body: {
-				action: "next",
-				conversation_id: conversationId,
-				conversation_mode: {
-					kind: "primary_assistant",
-				},
-				conversation_origin: null,
-				force_nulligen: false,
-				force_paragen: false,
-				force_paragen_model_slug: "",
-				force_rate_limit: false,
-				force_use_sse: true,
-				history_and_training_disabled: false,
-				messages: [
-					{
-						author: {
-							role: "user",
-						},
-						content: {
-							content_type: "text",
-							parts: [prompt],
-						},
-						create_time: new Date().getTime() / 1000,
-						id: newMessageId,
-						metadata: {},
-					},
-				],
-				model: "auto",
-				parent_message_id: parentMessageId,
-				reset_rate_limits: false,
-				suggestions: [],
-				system_hints: [],
-				timezone_offset_min: new Date().getTimezoneOffset(),
-				websocket_request_id: websocketRequestId,
+			body: JSON.stringify(
+				getChatCompletionBodyParams(chatCompletionData)
+			),
+		});
+	}
+
+	async function videoUsageRequest(): Promise<VideoUsageResponse> {
+		return get(SoraUrl.USAGE, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
 			},
-		};
-	};
+		});
+	}
 
-	const chatCompletionRequest = async (
-		chatCompletionData: ChatCompletionData
-	) => {
-		const params = getChatCompletionParams(chatCompletionData);
+	async function videoDraftRequest(): Promise<VideoDraftsResponse> {
+		return get(SoraUrl.VIDEO_DRAFTS, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+		});
+	}
 
-		const chatCompletionResponse = await baseRequest(
-			`/backend-api/conversation`,
-			params
-		);
+	async function videoPendingRequest(): Promise<VideoPendingResponse> {
+		return get(SoraUrl.PENDING, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+		});
+	}
 
-		if (
-			chatCompletionResponse.status ===
-			ResponseCodes.CONVERSATION_TOO_LONG
-		) {
-			const newChatCompletionData: Partial<ChatCompletionData> = {
-				...chatCompletionData,
-			};
-			delete newChatCompletionData.conversationId;
-
-			return await chatCompletionRequest(chatCompletionData);
-		}
-
-		if (chatCompletionResponse.status === ResponseCodes.TOO_MANY_REQUESTS) {
-			throw new Error("Too many requests 😫");
-		}
-
-		return chatCompletionResponse;
-	};
-
-	await chatAuthRequest();
+	async function videoRequest(prompt: string): Promise<VideoResponse> {
+		const body = getVideoBodyParams(prompt);
+		return post(SoraUrl.CREATE, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(body),
+		});
+	}
 
 	return {
-		chatCompletionRequest,
-		chatConversationIdRequest,
-		chatRequirementsRequest,
+		chatCompletion,
+		chatConversationId,
+		chatRequirements,
+		videoUsageRequest,
+		videoDraftRequest,
+		videoPendingRequest,
+		videoRequest,
 	};
 };
 

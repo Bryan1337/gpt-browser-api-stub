@@ -18,9 +18,9 @@ export const getWhatsappClient = () => {
 				"--disable-accelerated-2d-canvas",
 				"--no-first-run",
 				"--no-zygote",
-				"--disable-dev-shm-usage",
-			],
-		},
+				"--disable-dev-shm-usage"
+			]
+		}
 	});
 };
 
@@ -40,5 +40,5 @@ export const getMessageMediaFromUrl = async (
 };
 
 export const isRequestMessage = (message: Message) => {
-	return message.body.includes(`@${process.env.USER_PHONE_ID}`);
+	return message.body.includes(`@${process.env.USER_WHATSAPP_ID}`);
 };

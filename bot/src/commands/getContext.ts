@@ -1,26 +1,16 @@
 import { getContext } from "@/data_handlers/context/getContext";
-import {
-	CommandData,
-	CommandResponse,
-	CommandResponseType,
-} from "@/util/command";
+import { CommandHandleData } from "@/util/command";
 
-export const getContextCommand = async (
-	commandData: CommandData
-): Promise<CommandResponse> => {
-	const { message } = commandData;
+export const getContextCommand = async (data: CommandHandleData) => {
+	const { message } = data;
 
 	const context = getContext(message.id.remote);
 
 	if (context) {
-		return {
-			type: CommandResponseType.Text,
-			message: `Current context is:\n\n${context}`,
-		};
+		message.react("✅");
+		message.reply(`Current context is:\n\n${context}`);
+	} else {
+		message.react("❌");
+		message.reply("No context was found 🤔");
 	}
-
-	return {
-		type: CommandResponseType.Text,
-		message: "No context was found 🤔",
-	};
 };

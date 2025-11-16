@@ -1,24 +1,14 @@
 import { disableAudioResponse } from "@/data_handlers/enabled_audio/disableAudioResponse";
-import {
-	CommandData,
-	CommandResponse,
-	CommandResponseType,
-} from "@/util/command";
+import { CommandHandleData } from "@/util/command";
 
-export const disableAudioCommand = async (
-	commandData: CommandData
-): Promise<CommandResponse> => {
-	const { message } = commandData;
+export const disableAudioCommand = async (data: CommandHandleData) => {
+	const { message } = data;
 
 	if (await disableAudioResponse(message.id.remote)) {
-		return {
-			type: CommandResponseType.Text,
-			message: "Audio responses disabled 👌",
-		};
+		message.react("✅");
+		message.reply("Audio responses disabled 👌");
+	} else {
+		message.react("❌");
+		message.reply("Audio responses already disabled 🤔");
 	}
-
-	return {
-		type: CommandResponseType.Text,
-		message: "Audio responses already disabled 🤔",
-	};
 };

@@ -1,24 +1,14 @@
 import { addContext } from "@/data_handlers/context/addContext";
-import {
-	CommandData,
-	CommandResponse,
-	CommandResponseType,
-} from "@/util/command";
+import { CommandHandleData } from "@/util/command";
 
-export const setContextCommand = async (
-	commandData: CommandData
-): Promise<CommandResponse> => {
-	const { text, message } = commandData;
+export const setContextCommand = async (data: CommandHandleData) => {
+	const { text, message } = data;
 
 	if (addContext(message.id.remote, text)) {
-		return {
-			type: CommandResponseType.Text,
-			message: "Context added/updated 👌",
-		};
+		message.reply("Context added/updated 👌");
+		message.react("✅");
+	} else {
+		message.reply("No context to add 🤔");
+		message.react("❌");
 	}
-
-	return {
-		type: CommandResponseType.Text,
-		message: "No context to add 🤔",
-	};
 };

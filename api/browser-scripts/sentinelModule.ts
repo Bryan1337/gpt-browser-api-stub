@@ -1,15 +1,4 @@
-export interface ProofOfWork {
-	difficulty: string;
-	seed: string;
-	required: boolean;
-}
-
-export interface SentinelModule {
-	getRequirementsToken(): Promise<string>;
-	getEnforcementToken(proofofwork: ProofOfWork): Promise<string | null>;
-}
-
-export type SentinelModuleCall = () => Promise<SentinelModule>;
+export type SentinelModule = () => ReturnType<typeof sentinelModule>;
 
 declare global {
 	interface Performance {
@@ -19,9 +8,15 @@ declare global {
 			usedJSHeapSize: number;
 		};
 	}
+	interface Window {
+		hashwasm: {
+			sha3: (input: string, bits: number) => Promise<string>;
+		};
+		sentinelModule: SentinelModule;
+	}
 }
 
-const sentinelModule: SentinelModuleCall = async () => {
+const sentinelModule = () => {
 	const answers: Map<string, Promise<string>> = new Map();
 	const maxAttempts: number = 5e5;
 	const requirementsSeed: string = `${Math.random()}`;
@@ -36,13 +31,13 @@ const sentinelModule: SentinelModuleCall = async () => {
 		return btoa(unescape(encodeURIComponent(JSON.stringify(input))));
 	};
 
-	const getAnswer = async (proofofwork) => {
+	const getAnswer = async (proofofwork: ProofOfWork) => {
 		if (!proofofwork.required) {
-			return null;
+			return "";
 		}
 		const { seed, difficulty } = proofofwork;
 		if (typeof seed !== "string" || typeof difficulty !== "string") {
-			return null;
+			return "";
 		}
 		if (!answers.has(seed)) {
 			answers.set(seed, generateAnswer(seed, difficulty));
@@ -50,7 +45,7 @@ const sentinelModule: SentinelModuleCall = async () => {
 		const answer = await answers.get(seed);
 		return `gAAAAAB${answer}`;
 	};
-	const generateAnswer = async (seed, difficulty) => {
+	const generateAnswer = async (seed: string, difficulty: string) => {
 		const timing = performance.now();
 		const config = getConfig();
 		const difficultyLength = difficulty.length;
@@ -95,10 +90,11 @@ const sentinelModule: SentinelModuleCall = async () => {
 		navigator.languages.join(","),
 		Math.random(),
 		(() => {
-			const e = getRandomElement(
-				Object.keys(Object.getPrototypeOf(navigator))
-			);
-			return "".concat(e, "-").concat(navigator[e].toString());
+			const proto = Object.getPrototypeOf(navigator);
+			const keys = Object.keys(proto);
+			const e = getRandomElement(keys);
+			const value = (navigator as unknown as Record<string, unknown>)[e];
+			return `${e}-${String(value)}`;
 		})(),
 		getRandomElement(Object.keys(document)),
 		getRandomElement(Object.keys(window)),

@@ -53,7 +53,7 @@ export enum SupportedTTSLanguage {
 	TH = "th",
 	TR = "tr",
 	VI = "vi",
-	C = "cy",
+	C = "cy"
 }
 
 export const getTTSAudioFilePath = async (
@@ -74,3 +74,7 @@ export const getTTSAudioFilePath = async (
 		}
 	});
 };
+
+export function getSupportedLanguagesString() {
+	return Object.values(SupportedTTSLanguage).join(", ");
+}

@@ -1,40 +1,27 @@
-import {
-	CommandData,
-	CommandResponse,
-	CommandResponseType,
-} from "@/util/command";
-import { getPlaygroundAiImageBase64 } from "@/util/playgroundAi";
-import { getMessageMediaFromBase64 } from "@/util/whatsappWeb";
+import { CommandHandleData } from "@/util/command";
+import { generateDeepAiImage } from "@/util/deepAi";
+import { logError } from "@/util/log";
+import { getMessageMediaFromUrl } from "@/util/whatsappWeb";
+import { MessageSendOptions } from "whatsapp-web.js";
 
-export const imageCommand = async (
-	commandData: CommandData
-): Promise<CommandResponse> => {
+export const imageCommand = async (commandData: CommandHandleData) => {
 	const { text, message } = commandData;
 
 	await message.react("🖼️");
 
-	let initialMedia;
+	try {
+		const imageUrl = await generateDeepAiImage(text.trim());
+		const media = await getMessageMediaFromUrl(imageUrl);
 
-	if (message.hasMedia) {
-		initialMedia = await message.downloadMedia();
+		const messageProps: MessageSendOptions = { media };
+		const messageText = `*_"${`${text}`.trim()}"_*`;
+
+		message.react("✅");
+		message.reply(messageText, undefined, messageProps);
+	} catch (error) {
+		logError(error);
+
+		message.react("❌");
+		message.reply(`🤖 Something went wrong (${(error as Error).message})`);
 	}
-
-	const imageBase64 = await getPlaygroundAiImageBase64(text, initialMedia);
-
-	if ("image" in imageBase64) {
-		return {
-			type: CommandResponseType.Media,
-			media: getMessageMediaFromBase64(
-				"image/jpeg",
-				imageBase64.image.split(",")[1] as string
-			),
-			message: `*_"${`${text}`.trim()}"_*`,
-		};
-	}
-
-	return {
-		type: CommandResponseType.Text,
-		message:
-			imageBase64.error || "Something went wrong generating an image 😩",
-	};
 };

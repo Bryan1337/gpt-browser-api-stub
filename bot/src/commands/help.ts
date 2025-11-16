@@ -1,10 +1,10 @@
-import { CommandResponse, CommandResponseType, commands } from "@/util/command";
+import { CommandHandleData, getFormattedCommands } from "@/util/command";
 
-export const helpCommand = async (): Promise<CommandResponse> => {
-	return {
-		type: CommandResponseType.Text,
-		message: `The current commands are: \n\n ${Object.values(commands)
-			.map((command) => `*${command.command}*\n ${command.description}`)
-			.join("\n\n")}`,
-	};
+export const helpCommand = async (data: CommandHandleData) => {
+	const { message } = data;
+
+	const commands = getFormattedCommands();
+
+	message.react("✅");
+	message.reply(`The current commands are: \n\n ${commands}`);
 };

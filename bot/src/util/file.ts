@@ -69,10 +69,6 @@ export const ENABLED_AUDIO_FILE_PATH = createFileIfNotExists(
 	`${process.cwd()}/output/.enabled_audio/data.json`
 );
 
-export const RUNWAY_AI_KEYS_FILE_PATH = createFileIfNotExists(
-	`${process.cwd()}/output/.runway_ai/data.json`
-);
-
 export const PLAYGROUND_AI_KEYS_FILE_PATH = createFileIfNotExists(
 	`${process.cwd()}/output/.playground_ai/data.json`
 );
@@ -85,10 +81,14 @@ export const SUNO_AI_VIDEO_FILES_PATH = createFolderIfNotExists(
 	`${process.cwd()}/output/.suno_ai_songs`
 );
 
-export const HAILUO_AI_VIDEO_FILES_PATH = createFolderIfNotExists(
-	`${process.cwd()}/output/.hailuo_ai_videos`
+export const DEEP_AI_AUTH_FILE_PATH = createFileIfNotExists(
+	`${process.cwd()}/output/.deep_ai_auth/data.json`
 );
 
-export const HAILUO_AI_TOKENS_PATH = createFileIfNotExists(
-	`${process.cwd()}/output/.hailuo_ai_tokens/data.json`
+export const DEEP_AI_IMAGES_PATH = createFolderIfNotExists(
+	`${process.cwd()}/output/.deep_ai_images`
+);
+
+export const SORA_AI_VIDEOS_PATH = createFolderIfNotExists(
+	`${process.cwd()}/output/.sora_ai_videos`
 );

@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
-		"baseUrl": "./",
 		"target": "ESNext",
 		"module": "ESNext",
 		"checkJs": true,
@@ -12,7 +11,7 @@
 		"noImplicitAny": true,
 		"skipLibCheck": true,
 		"extendedDiagnostics": false,
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"downlevelIteration": true,
 		"allowJs": true,
 		"sourceMap": true,
@@ -28,7 +27,7 @@
 	},
 	"include": [
 		"./**/*.js",
-		"./**/*.ts",
+		"./**/*.ts"
 	],
 	"exclude": [
 		"node_modules"

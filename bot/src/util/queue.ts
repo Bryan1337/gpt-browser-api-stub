@@ -13,11 +13,12 @@ import { setConversationDetails } from "@/data_handlers/conversation/setConversa
 import { getAudioData } from "@/data_handlers/enabled_audio/getAudioData";
 import { removeAudioFile } from "@/data_handlers/enabled_audio/removeAudioFile";
 import { storePrompt } from "@/data_handlers/prompt/storePrompt";
+import { BOT_PREFIX } from "@/util/command";
 
 const queue = new Queue({
 	concurrency: 1,
 	autostart: true,
-	timeout: 60 * 5 * 1000,
+	timeout: 60 * 5 * 1000
 });
 
 const maxAttempts = 5;
@@ -53,18 +54,30 @@ const handleQueueItem = async (message: Message, attempt = 1) => {
 
 		const formattedPrompt = sanitize(
 			message.body,
-			`@${process.env.USER_PHONE_ID}`
+			`@${process.env.USER_WHATSAPP_ID}`
 		);
 
 		const conversationDetails = getConversationDetails(remoteId);
 
 		const responseStartTime = Date.now();
 
+		let promptWithSender = formattedPrompt;
+
+		console.log({ notify: message.notifyName });
+
+		console.log(message._data.notifyName);
+
+		if (message._data?.notifyName) {
+			promptWithSender = `[${message._data.notifyName}]: ${formattedPrompt}`;
+		}
+
+		// message.author
+
 		const [
-			response,
+			response
 			// responseImageBase64Data
 		] = await Promise.all([
-			getChatGPTResponse(formattedPrompt, conversationDetails),
+			getChatGPTResponse(promptWithSender, conversationDetails)
 			// getAiImageBase64(formattedPrompt)
 		]);
 
@@ -74,7 +87,7 @@ const handleQueueItem = async (message: Message, attempt = 1) => {
 
 		if (audioData) {
 			const audio = await getTTSAudioFilePath(
-				response.promptResponse,
+				response.answer,
 				audioData.language
 			);
 
@@ -86,11 +99,6 @@ const handleQueueItem = async (message: Message, attempt = 1) => {
 		} else {
 			let messageProps: MessageSendOptions = {};
 
-			// if (responseImageBase64Data.image) {
-			// 	const messageMedia = getMessageMediaFromBase64('image/jpeg', responseImageBase64Data.image.split(',')[1]);
-			// 	messageProps.media = messageMedia
-			// }
-
 			if (["gpt-4o", "gpt-4o-mini"].includes(response.modelSlug)) {
 				logInfo(
 					`Received enhanced model response (${response.modelSlug})`
@@ -98,8 +106,7 @@ const handleQueueItem = async (message: Message, attempt = 1) => {
 				modelEmoji = "👾";
 			}
 
-			const finalResponseMessage =
-				response.error ?? response.promptResponse;
+			const finalResponseMessage = response.error ?? response.answer;
 
 			await message.reply(
 				`${modelEmoji} ${finalResponseMessage}`,
@@ -119,9 +126,7 @@ const handleQueueItem = async (message: Message, attempt = 1) => {
 		logInfo(
 			`Request handled in ${
 				requestDuration / 1000
-			} seconds. Response length: ${
-				response?.promptResponse?.length
-			} characters`
+			} seconds. Response length: ${response?.answer?.length} characters`
 		);
 
 		const contact = await message.getContact();
@@ -130,7 +135,7 @@ const handleQueueItem = async (message: Message, attempt = 1) => {
 			contact.pushname,
 			remoteId,
 			formattedPrompt,
-			response.promptResponse,
+			response.answer,
 			requestDuration
 		);
 	} catch (error) {
@@ -151,13 +156,14 @@ const handleQueueItem = async (message: Message, attempt = 1) => {
 			return;
 		}
 
-		await message.reply(`${modelEmoji} ${error.message}`);
-
-		await message.react("❌");
+		message.react("❌");
+		message.reply(
+			`${BOT_PREFIX} Something went wrong (${(error as Error).message})`
+		);
 	}
 };
 
-export const addMessageToQueue = (message: Message) => {
+export const addMessageToQueue = async (message: Message) => {
 	messageProxy = message;
 
 	queue.push(async (callback) => {

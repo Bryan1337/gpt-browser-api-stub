@@ -23,8 +23,8 @@ export const getChatGPTResponse = async (
 
 	const response = await getLocalResponse(prompt, conversationDetails);
 
-	if (response.promptResponse.includes(UNUSUAL_ACTIVITY_ERROR)) {
-		throw Error(response.promptResponse);
+	if (response.answer.includes(UNUSUAL_ACTIVITY_ERROR)) {
+		throw Error(response.answer);
 	}
 
 	return response;

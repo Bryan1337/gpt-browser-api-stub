@@ -1,24 +1,14 @@
 import { clearContext } from "@/data_handlers/context/clearContext";
-import {
-	CommandData,
-	CommandResponse,
-	CommandResponseType,
-} from "@/util/command";
+import { CommandHandleData } from "@/util/command";
 
-export const clearContextCommand = async (
-	commandData: CommandData
-): Promise<CommandResponse> => {
-	const { message } = commandData;
+export const clearContextCommand = async (data: CommandHandleData) => {
+	const { message } = data;
 
 	if (clearContext(message.id.remote)) {
-		return {
-			type: CommandResponseType.Text,
-			message: "Context cleared 👌",
-		};
+		message.react("✅");
+		message.reply("Context cleared 👌");
+	} else {
+		message.react("❌");
+		message.reply("No context was found 🤔");
 	}
-
-	return {
-		type: CommandResponseType.Text,
-		message: "No context was found 🤔",
-	};
 };

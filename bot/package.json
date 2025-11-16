@@ -1,43 +1,41 @@
 {
-  "name": "chatgpt_api",
-  "version": "1.0.0",
-  "description": "ChatGPT Whatsapp bot",
-  "main": "index.js",
-  "scripts": {
-    "local": "tsx src/index.ts",
-    "test": "tsx src/util/sunoApi.ts"
-  },
-  "keywords": [
-    "chatgpt",
-    "whatsapp",
-    "bot"
-  ],
-  "author": "Bryan Overduin",
-  "license": "ISC",
-  "dependencies": {
-    "chalk": "^5.2.0",
-    "ffmpeg": "^0.0.4",
-    "ffmpeg-static": "^5.2.0",
-    "fluent-ffmpeg": "^2.1.3",
-    "hash-wasm": "^4.11.0",
-    "mic": "^2.1.2",
-    "node-gtts": "^2.0.2",
-    "qrcode-terminal": "^0.12.0",
-    "queue": "^7.0.0",
-    "uuid": "^9.0.0",
-    "whatsapp-web.js": "^1.26.0"
-  },
-  "type": "module",
-  "devDependencies": {
-    "@types/ffmpeg": "^1.0.7",
-    "@types/fluent-ffmpeg": "^2.1.26",
-    "@types/qrcode-terminal": "^0.12.2",
-    "@types/uuid": "^9.0.8",
-    "dotenv": "^16.0.3",
-    "tsx": "^4.11.0",
-    "typescript": "^5.4.5"
-  },
-  "imports": {
-    "@/*": "./src/*"
-  }
+	"name": "chatgpt_api",
+	"version": "1.0.0",
+	"description": "ChatGPT Whatsapp bot",
+	"main": "index.js",
+	"scripts": {
+		"local": "tsx watch src/index.ts",
+		"test": "cross-env NODE_OPTIONS=--openssl-legacy-provider tsx src/data_handlers/sora/getVideo.ts"
+	},
+	"keywords": [
+		"chatgpt",
+		"whatsapp",
+		"bot"
+	],
+	"author": "Bryan Overduin",
+	"license": "ISC",
+	"dependencies": {
+		"chalk": "^5.2.0",
+		"ffmpeg": "^0.0.4",
+		"ffmpeg-static": "^5.2.0",
+		"fluent-ffmpeg": "^2.1.3",
+		"hash-wasm": "^4.11.0",
+		"mic": "^2.1.2",
+		"node-gtts": "^2.0.2",
+		"qrcode-terminal": "^0.12.0",
+		"queue": "^7.0.0",
+		"uuid": "^9.0.0",
+		"whatsapp-web.js": "^1.34.2"
+	},
+	"type": "module",
+	"devDependencies": {
+		"@types/ffmpeg": "^1.0.7",
+		"@types/fluent-ffmpeg": "^2.1.26",
+		"@types/qrcode-terminal": "^0.12.2",
+		"@types/uuid": "^9.0.8",
+		"cross-env": "^7.0.3",
+		"dotenv": "^16.0.3",
+		"tsx": "^4.11.0",
+		"typescript": "^5.4.5"
+	}
 }

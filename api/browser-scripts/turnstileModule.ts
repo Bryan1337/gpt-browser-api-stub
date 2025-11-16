@@ -1,3 +1,5 @@
+export type TurnstileModule = () => ReturnType<typeof turnstileModule>;
+
 declare global {
 	interface Window {
 		turnstile: Turnstile;
@@ -11,23 +13,23 @@ interface Turnstile {
 	render: (...args: unknown[]) => void;
 }
 
-enum TurnstileStatus {
-	Idle = "idle",
-	Loading = "loading",
-	ScriptLoaded = "script_loaded",
-	Ready = "ready",
-	Error = "error",
-}
-
-interface TurnstileData {
-	persona: "chatgpt-freeaccount";
-	turnstile: {
-		required: boolean;
-		dx: string;
-	};
-}
-
 const turnstileModule = () => {
+	enum TurnstileStatus {
+		Idle = "idle",
+		Loading = "loading",
+		ScriptLoaded = "script_loaded",
+		Ready = "ready",
+		Error = "error",
+	}
+
+	interface TurnstileData {
+		persona: "chatgpt-freeaccount";
+		turnstile: {
+			required: boolean;
+			dx: string;
+		};
+	}
+
 	const registryHelper = () => {
 		let globalRegistry = new Map();
 
@@ -380,11 +382,7 @@ const turnstileModule = () => {
 			}
 
 			const enforcementToken = await this.startEnforcement(data);
-
-			if (enforcementToken) {
-				return enforcementToken.toString();
-			}
-			return null;
+			return `${enforcementToken}`;
 		}
 
 		async startEnforcement(data: TurnstileData) {
@@ -533,7 +531,5 @@ const turnstileModule = () => {
 
 	return new TurnstileModule();
 };
-
-export type TurnstileModuleCall = () => ReturnType<typeof turnstileModule>;
 
 export default turnstileModule;

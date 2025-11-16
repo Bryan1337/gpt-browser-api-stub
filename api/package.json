@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "local": "tsx index.ts"
+    "local": "tsx watch index.ts"
   },
   "dependencies": {
     "chalk": "^5.3.0",

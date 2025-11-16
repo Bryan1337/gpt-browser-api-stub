@@ -1,94 +1,88 @@
-export type StreamModuleResponseData = {
-	modelSlug: string;
-	response: string;
-	chatConversationId: number | null;
-};
+export type StreamModule = () => ReturnType<typeof streamModule>;
 
-export type StreamModuleCall = (
-	responseData: Response
-) => Promise<StreamModuleResponseData>;
+const streamModule = () => {
+	enum Status {
+		FINISHED = "finished_successfully",
+	}
 
-const streamModule: StreamModuleCall = async (responseData) => {
-	const streamFinishedIndicator = "[DONE]";
+	async function parseResponse(response: Response) {
+		const reader = response.body?.getReader();
 
-	let promptResponse = "";
+		if (!reader) {
+			throw new Error("No reader");
+		}
 
-	let modelSlug = "";
+		const decoder = new TextDecoder();
 
-	let conversationId = null;
+		let answer = "";
+		let modelSlug = "";
+		let conversationId = null;
 
-	const handleChunk = (chunk: string): void | { error: string } => {
-		try {
-			if (chunk.substring(5).trim() === streamFinishedIndicator) {
-				return;
+		while (true) {
+			const { value, done } = await reader.read();
+			if (done) {
+				break;
 			}
 
-			const data = JSON.parse(chunk.substring(5));
+			const decoded = decoder.decode(value, { stream: true });
 
-			modelSlug = data?.message?.metadata?.model_slug || modelSlug;
+			const splitMessages = decoded.split("\n").filter(Boolean);
 
-			if (data.error) {
-				return { error: data.error };
-			}
+			const dataMessages = splitMessages
+				.filter((message) => message.startsWith("data: "))
+				.map((message) => {
+					try {
+						return JSON.parse(message.replace("data: ", ""));
+					} catch (error) {
+						return null;
+					}
+				})
+				.filter(Boolean);
 
-			if (data.message.content.parts[0] === promptResponse) {
-				return;
-			}
+			for (const dataMessage of dataMessages) {
+				if (typeof dataMessage === "string") {
+					continue;
+				}
 
-			if (data.message?.status === "finished_successfully") {
-				return;
-			}
+				if (dataMessage && dataMessage.type === "server_ste_metadata") {
+					modelSlug = dataMessage.metadata.model_slug;
+				}
 
-			conversationId = data.conversation_id;
+				if (dataMessage && dataMessage.type === "input_message") {
+					conversationId = dataMessage.conversation_id;
+				}
 
-			promptResponse = data.message.content.parts[0];
-		} catch (error) {
-			const chunks = chunk.split("\n\n").filter(Boolean);
-			// Sometimes multiple chunks are received at once
-			if (chunks.length > 1) {
-				for (const chunk of chunks) {
-					return handleChunk(chunk);
+				if (!dataMessage.v || !Array.isArray(dataMessage.v)) {
+					continue;
+				}
+
+				const statusMessage = dataMessage.v.find(
+					({ p }: { p: string }) => p === "/message/status"
+				);
+				const contentMessage = dataMessage.v.find(
+					({ p, o }: { p: string; o: string }) =>
+						p === "/message/content/parts/0" &&
+						(o === "append" || o === "patch")
+				);
+
+				if (contentMessage) {
+					answer += contentMessage.v;
+				}
+
+				if (statusMessage?.v === Status.FINISHED) {
+					break;
 				}
 			}
 		}
-	};
 
-	const readableStream = responseData.body;
-
-	if (!readableStream) {
-		throw new Error("No readable stream found in body data...");
+		return {
+			answer,
+			modelSlug,
+			chatConversationId: conversationId,
+		};
 	}
 
-	const decoder = new TextDecoder();
-
-	const readStream = async (
-		reader: ReadableStreamDefaultReader
-	): Promise<string> => {
-		const { done, value } = await reader.read();
-
-		if (done) {
-			return promptResponse;
-		}
-
-		const chunk = decoder.decode(value, { stream: true });
-
-		const chunkResponse = handleChunk(chunk);
-
-		if (chunkResponse?.error) {
-			return chunkResponse.error;
-		}
-
-		return await readStream(reader);
-	};
-
-	const reader = readableStream.getReader();
-	const finalResponse = await readStream(reader);
-
-	return {
-		response: finalResponse,
-		modelSlug,
-		chatConversationId: conversationId,
-	};
+	return { parseResponse };
 };
 
 export default streamModule;
