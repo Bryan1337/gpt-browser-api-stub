@@ -1,6 +1,6 @@
 import { CommandHandleData } from "@/util/command";
 import { reactQueued, reactTyping } from "@/util/message";
-import { addMessageToQueue, QueueItemType } from "@/util/queue";
+import { addMessageToChatQueue } from "@/util/queue";
 
 export async function chatCommand(data: CommandHandleData) {
 	const { message } = data;
@@ -8,5 +8,5 @@ export async function chatCommand(data: CommandHandleData) {
 	await reactQueued(message);
 	await reactTyping(message);
 
-	addMessageToQueue(data, QueueItemType.CHAT);
+	addMessageToChatQueue(data);
 }

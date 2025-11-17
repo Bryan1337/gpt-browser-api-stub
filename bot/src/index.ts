@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 dotenv.config();
-/** Handle dotenv configs before importing any other modules */
 
 import whatsapp from "whatsapp-web.js";
 

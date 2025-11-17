@@ -50,7 +50,7 @@ export const handleChatQueueItem = async (
 		}
 
 		const promptWithContext = context
-			? `${context}\n ${prompt}`
+			? `${context}\n ${promptWithSender}`
 			: promptWithSender;
 
 		logInfo("Querying prompt:", promptWithSender);
