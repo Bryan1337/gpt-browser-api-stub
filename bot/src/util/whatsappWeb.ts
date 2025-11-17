@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-import whatsapp, { MediaFromURLOptions, Message } from "whatsapp-web.js";
+import whatsapp, { MediaFromURLOptions } from "whatsapp-web.js";
 
 const { Client, LocalAuth, MessageMedia } = whatsapp;
 
@@ -37,8 +37,4 @@ export const getMessageMediaFromUrl = async (
 	options?: MediaFromURLOptions
 ) => {
 	return await MessageMedia.fromUrl(url, options);
-};
-
-export const isRequestMessage = (message: Message) => {
-	return message.body.includes(`@${process.env.USER_WHATSAPP_ID}`);
 };

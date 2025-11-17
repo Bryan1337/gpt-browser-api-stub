@@ -1,6 +1,7 @@
 import { validateAccessKey } from "@/data_handlers/access_key/validateAccessKey";
 import { addToWhiteList } from "@/data_handlers/whitelist/addToWhitelist";
 import { CommandHandleData } from "@/util/command";
+import { reactError, reactSuccess, reply } from "@/util/message";
 
 export const registerCommand = (data: CommandHandleData) => {
 	const { text, message } = data;
@@ -10,10 +11,10 @@ export const registerCommand = (data: CommandHandleData) => {
 	if (validateAccessKey(`${text}`.trim())) {
 		addToWhiteList(id);
 
-		message.react("✅");
-		message.reply(`Registered 👌`);
+		reactSuccess(message);
+		reply(message, `Registered 👌`);
 	} else {
-		message.react("❌");
-		message.reply(`Invalid registration key 🚫`);
+		reactError(message);
+		reply(message, `Invalid registration key 🚫`);
 	}
 };

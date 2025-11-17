@@ -1,20 +1,15 @@
-import { Page } from "puppeteer";
 import { Request, Response } from "express";
 import { logError, logInfo } from "../../scripts/logHelper";
 import { getVideoResponse } from "../../browser";
 
-export async function videoRequest(
-	request: Request,
-	response: Response,
-	page: Page
-) {
+export async function videoRequest(request: Request, response: Response) {
 	try {
 		logInfo("Received video command", request.body);
 
-		const videoResponse = await page.evaluate(getVideoResponse, {
-			body: request.body,
-			baseUrl: process.env.SORA_BASE_URL as string,
-		});
+		const videoResponse = await request.pages.soraPage.evaluate(
+			getVideoResponse,
+			{ body: request.body }
+		);
 
 		response.json(videoResponse);
 	} catch (error) {

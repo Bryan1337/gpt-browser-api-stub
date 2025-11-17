@@ -1,4 +1,3 @@
-import { Page } from "puppeteer";
 import { getConversationsResponse } from "../../browser";
 import { logError, logInfo } from "../../scripts/logHelper";
 import { getMessageId } from "../../util/message";
@@ -7,8 +6,7 @@ import { Request, Response } from "express";
 
 export async function conversationsRequest(
 	request: Request,
-	response: Response,
-	page: Page
+	response: Response
 ) {
 	try {
 		logInfo("Received /conversations request...");
@@ -22,7 +20,7 @@ export async function conversationsRequest(
 			parentMessageId,
 		};
 
-		const conversationsResponse = await page.evaluate(
+		const conversationsResponse = await request.pages.chatGptPage.evaluate(
 			getConversationsResponse,
 			params
 		);

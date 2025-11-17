@@ -1,14 +1,15 @@
 import { disableAudioResponse } from "@/data_handlers/enabled_audio/disableAudioResponse";
 import { CommandHandleData } from "@/util/command";
+import { reactError, reactSuccess, reply } from "@/util/message";
 
 export const disableAudioCommand = async (data: CommandHandleData) => {
 	const { message } = data;
 
 	if (await disableAudioResponse(message.id.remote)) {
-		message.react("✅");
-		message.reply("Audio responses disabled 👌");
+		reactSuccess(message);
+		reply(message, "Audio responses disabled 👌");
 	} else {
-		message.react("❌");
-		message.reply("Audio responses already disabled 🤔");
+		reactError(message);
+		reply(message, "Audio responses already disabled 🤔");
 	}
 };

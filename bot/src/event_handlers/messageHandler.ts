@@ -1,25 +1,24 @@
 import { Message } from "whatsapp-web.js";
-import { answerCommandResponse, isCommandMessage } from "@/util/command";
-import { addMessageToQueue } from "@/util/queue";
-import { isRequestMessage } from "@/util/whatsappWeb";
+import { answerCommandResponse, getCommandData } from "@/util/command";
 import { logError, logWarning } from "@/util/log";
 import { checkWhitelistStatus } from "@/data_handlers/whitelist/checkWhitelistStatus";
 import dotenv from "dotenv";
+import { reactBlocked, reply } from "@/util/message";
 dotenv.config();
 
 export const messageHandler = async (message: Message) => {
 	try {
-		if (isCommandMessage(message)) {
-			const commandResponse = await answerCommandResponse(message);
+		const contact = await message.getContact();
+		const commandData = getCommandData(message);
 
-			if (commandResponse) {
-				await message.react("✅");
+		if (!commandData) {
+			return;
+		}
 
-				return;
-			}
-		} else if (!checkWhitelistStatus(message.from)) {
-			const contact = await message.getContact();
+		const allowed = checkWhitelistStatus(message.from);
+		const alwaysAllowed = !!commandData.command.alwaysAllowed;
 
+		if (!allowed && !alwaysAllowed) {
 			logWarning(
 				"Received message from unregistered user:",
 				`(${contact.pushname})`,
@@ -27,20 +26,16 @@ export const messageHandler = async (message: Message) => {
 				message.body
 			);
 
-			await message.reply(
-				`🤖 Sorry, you are not allowed to use to use the Boy. Message ${process.env.OWNER_ID} for an access key 😌👌.`
+			reactBlocked(message);
+			reply(
+				message,
+				`Sorry, you are not allowed to use to use the Boy. Message ${process.env.OWNER_ID} for an access key 😌👌.`
 			);
 
-			await message.react("🚫");
-
 			return;
-		} else if (isRequestMessage(message)) {
-			message.react("💤");
-
-			addMessageToQueue(message);
-		} else {
-			logWarning("Unknown message", message);
 		}
+
+		answerCommandResponse(message);
 	} catch (error) {
 		logError(error);
 	}

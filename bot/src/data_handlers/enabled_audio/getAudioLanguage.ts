@@ -1,9 +1,8 @@
 import fs from "fs";
 import { ENABLED_AUDIO_FILE_PATH } from "@/util/file";
 
-export const hasAudioEnabled = async (remoteId: string) => {
+export function getAudioLanguage(remoteId: string) {
 	const enabledAudio = fs.readFileSync(ENABLED_AUDIO_FILE_PATH);
-
 	const enabledAudioMap = JSON.parse(enabledAudio.toString());
 
 	const enabledAudioIds = enabledAudioMap.map(
@@ -16,5 +15,5 @@ export const hasAudioEnabled = async (remoteId: string) => {
 		return enabledAudioMap[enabledAudioIndex];
 	}
 
-	return false;
-};
+	return null;
+}

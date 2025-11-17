@@ -1,14 +1,15 @@
 import { clearContext } from "@/data_handlers/context/clearContext";
 import { CommandHandleData } from "@/util/command";
+import { reactError, reactSuccess, reply } from "@/util/message";
 
 export const clearContextCommand = async (data: CommandHandleData) => {
 	const { message } = data;
 
 	if (clearContext(message.id.remote)) {
-		message.react("✅");
-		message.reply("Context cleared 👌");
+		reactSuccess(message);
+		reply(message, "Context cleared 👌");
 	} else {
-		message.react("❌");
-		message.reply("No context was found 🤔");
+		reactError(message);
+		reply(message, "Context cleared 👌");
 	}
 };

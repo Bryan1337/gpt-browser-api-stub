@@ -1,24 +1,17 @@
 import { Request, Response } from "express";
-import { Page } from "puppeteer";
 import { logError, logInfo } from "../../scripts/logHelper";
 import { getVideoDraftResponse } from "../../browser";
 
-export async function draftVideoRequest(
-	request: Request,
-	response: Response,
-	page: Page
-) {
+export async function draftVideoRequest(request: Request, response: Response) {
 	try {
 		const { taskId } = request.query as { taskId: string };
 
 		logInfo("Received draft video command", taskId);
 
-		const draftResponse = await page.evaluate(getVideoDraftResponse, {
-			body: { taskId },
-			baseUrl: process.env.SORA_BASE_URL as string,
-		});
-
-		console.log("draftResponse", draftResponse);
+		const draftResponse = await request.pages.soraPage.evaluate(
+			getVideoDraftResponse,
+			{ body: { taskId } }
+		);
 
 		response.json(draftResponse);
 	} catch (error) {

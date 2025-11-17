@@ -1,3 +1,4 @@
+import { Page } from "puppeteer";
 import { RequestsModule } from "./browser-scripts/requestsModule";
 import { SentinelModule } from "./browser-scripts/sentinelModule";
 import { StreamModule } from "./browser-scripts/streamModule";
@@ -25,6 +26,15 @@ declare global {
 		requestsModule: RequestsModule;
 		sentinelModule: SentinelModule;
 		turnstileModule: TurnstileModule;
+	}
+
+	namespace Express {
+		interface Request {
+			pages: {
+				soraPage: Page;
+				chatGptPage: Page;
+			};
+		}
 	}
 }
 
@@ -148,6 +158,34 @@ export const getVideoResponse = async ({
 }: {
 	body: { prompt: string };
 }) => {
+	function formatSeconds(seconds: number) {
+		const days = Math.floor(seconds / 86400);
+		seconds %= 86400;
+
+		const hours = Math.floor(seconds / 3600);
+		seconds %= 3600;
+
+		const minutes = Math.floor(seconds / 60);
+		seconds = Math.floor(seconds % 60);
+
+		const parts = [];
+
+		if (days > 0) {
+			parts.push(`${days} day${days !== 1 ? "s" : ""}`);
+		}
+		if (hours > 0) {
+			parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
+		}
+		if (minutes > 0) {
+			parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+		}
+		if (seconds > 0 || parts.length === 0) {
+			parts.push(`${seconds} second${seconds !== 1 ? "s" : ""}`);
+		}
+
+		return parts.join(", ");
+	}
+
 	try {
 		const { prompt } = body;
 
@@ -165,8 +203,10 @@ export const getVideoResponse = async ({
 				usageResponse.rate_limit_and_credit_balance
 					.access_resets_in_seconds ?? 0;
 
+			const timeRemaining = formatSeconds(resetInSeconds);
+
 			return {
-				error: `No video generations left. Reset occurs in ${resetInSeconds} seconds.`,
+				error: `No video generations left. Reset occurs in ${timeRemaining}.`,
 			};
 		}
 
@@ -183,10 +223,8 @@ export const getVideoResponse = async ({
 
 export const getPendingVideoResponse = async ({
 	body,
-	baseUrl,
 }: {
 	body: { taskId: string };
-	baseUrl: string;
 }) => {
 	const { taskId } = body;
 
@@ -220,10 +258,8 @@ export const getPendingVideoResponse = async ({
 
 export const getVideoDraftResponse = async ({
 	body,
-	baseUrl,
 }: {
 	body: { taskId: string };
-	baseUrl: string;
 }) => {
 	try {
 		const { taskId } = body;
@@ -237,6 +273,7 @@ export const getVideoDraftResponse = async ({
 
 		let draft;
 		let attempt = 1;
+		const maxAttempts = 10;
 
 		const pause = async (amountOfMs: number) => {
 			return await new Promise((resolve) =>
@@ -244,7 +281,7 @@ export const getVideoDraftResponse = async ({
 			);
 		};
 
-		while (!draft && attempt < 5) {
+		while (!draft && attempt < maxAttempts) {
 			const drafts = await fetchDraft();
 
 			await pause(2500);
@@ -254,7 +291,7 @@ export const getVideoDraftResponse = async ({
 
 		if (!draft) {
 			return {
-				error: `Unable to find draft after ${attempt} attempts.`,
+				error: `Unable to find draft after ${maxAttempts} attempts.`,
 			};
 		}
 

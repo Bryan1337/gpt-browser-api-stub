@@ -1,5 +1,5 @@
 import { sanitize } from "@/util/string";
-import { Message, MessageMedia } from "whatsapp-web.js";
+import { Message } from "whatsapp-web.js";
 import { getSupportedLanguagesString } from "@/util/tts";
 import { disableAudioCommand } from "@/commands/disableAudio";
 import { imageCommand } from "@/commands/image";
@@ -11,37 +11,8 @@ import { getContextCommand } from "@/commands/getContext";
 import { setContextCommand } from "@/commands/setContext";
 import { registerCommand } from "@/commands/register";
 import { logError } from "@/util/log";
-
-export const COMMAND_PREFIX = "!";
-export const BOT_PREFIX = "🤖";
-export interface CommandTextResponse {
-	type: CommandResponseType.Text;
-	message: string;
-	originMessage?: Message;
-}
-
-export interface CommandMediaResponse {
-	type: CommandResponseType.Media;
-	message: string;
-	media: MessageMedia;
-	originMessage?: Message;
-}
-
-export type CommandResponse = Promise<
-	CommandTextResponse | CommandMediaResponse
->;
-
-export enum CommandResponseType {
-	Text = "text",
-	Media = "media",
-	Audio = "audio",
-	None = "none"
-}
-
-export interface CommandData {
-	command: Command;
-	commandKey: `${typeof COMMAND_PREFIX}${string}`;
-}
+import { chatCommand } from "@/commands/chat";
+import { reply } from "@/util/message";
 
 export interface CommandHandleData {
 	message: Message;
@@ -50,16 +21,42 @@ export interface CommandHandleData {
 
 export type CommandHandle = (data: CommandHandleData) => void;
 
-export interface CommandHandler extends Command {
+type Command = {
 	handle: CommandHandle;
-}
+	description: string;
+	alias?: string;
+	commandAlias?: string;
+	alwaysAllowed?: boolean;
+};
 
-type Command = { handle: CommandHandle; description: string };
+type CommandKey =
+	| "chat"
+	| "help"
+	| "register"
+	| "context"
+	| "getContext"
+	| "clearContext"
+	| "enableAudio"
+	| "disableAudio"
+	| "image"
+	| "video";
 
-export const commands: Record<string, Command> = {
+export const commands: Record<CommandKey, Command> = {
+	chat: {
+		alias: "@me",
+		commandAlias: `@${process.env.USER_WHATSAPP_ID}`,
+		handle: chatCommand,
+		description: `@me for ChatGPT responses`
+	},
+	help: {
+		handle: helpCommand,
+		description: `Shows the list of commands. Usage:\n \`\`\`!help\`\`\``,
+		alwaysAllowed: true
+	},
 	register: {
 		handle: registerCommand,
-		description: `Registers a chat/conversation with the bot. Usage:\n \`\`\`!register <registration key>\`\`\``
+		description: `Registers a chat/conversation with the bot. Usage:\n \`\`\`!register <registration key>\`\`\``,
+		alwaysAllowed: true
 	},
 	context: {
 		handle: setContextCommand,
@@ -73,10 +70,6 @@ export const commands: Record<string, Command> = {
 		handle: clearContextCommand,
 		description: `Clears the context for the current chat/conversation. Usage:\n \`\`\`!clearContext\`\`\``
 	},
-	help: {
-		handle: helpCommand,
-		description: `Shows the list of commands. Usage:\n \`\`\`!help\`\`\``
-	},
 	enableAudio: {
 		handle: enableAudioCommand,
 		description: `Enables audio responses. Usage:\n \`\`\`!enableAudio <languagecode> (nl, en, fr etc...)\`\`\`\n Supported languages are: ${getSupportedLanguagesString()}`
@@ -85,59 +78,62 @@ export const commands: Record<string, Command> = {
 		handle: disableAudioCommand,
 		description: `Disables audio responses. Usage:\n \`\`\`!disableAudio\`\`\``
 	},
-	video: {
-		handle: videoCommand,
-		description: `Sends a video. Usage:\n \`\`\`!video <video prompt>\`\`\``
-	},
 	image: {
 		handle: imageCommand,
 		description: `Sends an image. Usage:\n \`\`\`!image <image prompt>\`\`\``
+	},
+	video: {
+		handle: videoCommand,
+		description: `Sends a video. Usage:\n \`\`\`!video <video prompt>\`\`\``
 	}
 };
 
-function getCommandData(message: Message) {
-	const commandKeys = Object.keys(commands);
-
+export function getCommandData(message: Message) {
+	const commandKeys = Object.keys(commands) as CommandKey[];
 	const text = sanitize(message.body);
 
 	for (const commandKey of commandKeys) {
-		if (text.startsWith(`${COMMAND_PREFIX}${commandKey}`)) {
+		const command = commands[commandKey];
+		const commandText =
+			command.commandAlias ||
+			`${process.env.COMMAND_PREFIX}${commandKey}`;
+
+		if (text.startsWith(commandText)) {
 			const command = commands[commandKey];
-			return { command, commandKey: `${COMMAND_PREFIX}${commandKey}` };
+			return {
+				command,
+				commandKey: `${process.env.COMMAND_PREFIX}${commandKey}`
+			};
 		}
 	}
 
 	return null;
 }
 
-export const answerCommandResponse = async (message: Message) => {
+export async function answerCommandResponse(message: Message) {
 	const commandData = getCommandData(message);
 	if (!commandData) {
 		return;
 	}
 
 	const { commandKey, command } = commandData;
-
 	const text = sanitize(message.body, commandKey);
 
 	try {
 		command.handle({ text, message });
 	} catch (error) {
 		logError(error as string);
-
-		message.reply(`🤖 Something went wrong (${(error as Error).message})`);
+		reply(message, `Something went wrong (${error})`);
 	}
-};
-
-export const isCommandMessage = (message: Message) => {
-	return !!getCommandData(message);
-};
+}
 
 export function getFormattedCommands() {
 	return Object.entries(commands)
-		.map(
-			([commandKey, command]) =>
-				`*${COMMAND_PREFIX}${commandKey}*\n ${command.description}`
-		)
+		.map(([commandKey, command]) => {
+			const commandText =
+				command.alias || `${process.env.COMMAND_PREFIX}${commandKey}`;
+
+			return `*${commandText}*\n ${command.description}`;
+		})
 		.join("\n\n");
 }

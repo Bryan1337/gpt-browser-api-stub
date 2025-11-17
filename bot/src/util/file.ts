@@ -35,7 +35,7 @@ export const createFileIfNotExists = (filePath: string, baseData = []) => {
 
 export const createFolderIfNotExists = (folderPath: string) => {
 	if (!fs.existsSync(folderPath)) {
-		fs.mkdirSync(folderPath, { recursive: true }); // Ensure the folder and any parent folders are created
+		fs.mkdirSync(folderPath, { recursive: true });
 	}
 
 	return folderPath;

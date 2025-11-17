@@ -7,7 +7,7 @@ export interface ConversationDetails {
 	whatsappIdentifier: string;
 }
 
-export const getLocalResponse = async (
+export const getLocalChatResponse = async (
 	prompt: string,
 	conversationDetails: ConversationDetails
 ) => {

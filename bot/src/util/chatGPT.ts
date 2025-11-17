@@ -1,5 +1,5 @@
 import { getContext } from "@/data_handlers/context/getContext";
-import { ConversationDetails, getLocalResponse } from "@/util/request";
+import { ConversationDetails, getLocalChatResponse } from "@/util/request";
 import { logInfo } from "@/util/log";
 
 const UNUSUAL_ACTIVITY_ERROR =
@@ -21,7 +21,7 @@ export const getChatGPTResponse = async (
 
 	logInfo("Querying prompt:", prompt);
 
-	const response = await getLocalResponse(prompt, conversationDetails);
+	const response = await getLocalChatResponse(prompt, conversationDetails);
 
 	if (response.answer.includes(UNUSUAL_ACTIVITY_ERROR)) {
 		throw Error(response.answer);

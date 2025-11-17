@@ -24,31 +24,38 @@ const browser = await puppeteer.launch({
 	args: [`--load-extension=${process.env.VPN_EXTENSION_PATH}`],
 });
 
-const [chatGPTPage] = await browser.pages();
+const [chatGptPage] = await browser.pages();
 const soraPage = await browser.newPage();
 
-const chatGPTUrl = "https://chatgpt.com/chat";
+const chatGptUrl = "https://chatgpt.com/chat";
 const soraUrl = "https://sora.chatgpt.com/explore";
 
-await chatGPTPage.goto(chatGPTUrl, { waitUntil: "networkidle2" });
-importBrowserScripts(chatGPTPage);
+chatGptPage.goto(chatGptUrl);
 soraPage.goto(soraUrl);
 
-server.use((req, res, next) => {
-	importBrowserScripts(chatGPTPage);
-	importBrowserScripts(soraPage);
-	// inject pages in req/res?
+setTimeout(async () => {
+	await importBrowserScripts(chatGptPage);
+}, 5000);
+
+server.use(async (request, response, next) => {
+	await importBrowserScripts(chatGptPage);
+	await importBrowserScripts(soraPage);
+	request.pages = { chatGptPage, soraPage };
 	next();
 });
 
-server.post("/conversations", async (req, res) =>
-	conversationsRequest(req, res, chatGPTPage)
-);
-server.post("/video", async (req, res) => videoRequest(req, res, soraPage));
-server.get("/pending", async (req, res) =>
-	pendingVideoRequest(req, res, soraPage)
-);
-server.get("/draft", async (req, res) => draftVideoRequest(req, res, soraPage));
+enum Route {
+	CONVERSATIONS = "/conversations",
+	VIDEO = "/video",
+	PENDING = "/pending",
+	DRAFT = "/draft",
+}
+
+server.post(Route.CONVERSATIONS, conversationsRequest);
+server.post(Route.VIDEO, videoRequest);
+
+server.get(Route.PENDING, pendingVideoRequest);
+server.get(Route.DRAFT, draftVideoRequest);
 
 server.listen(process.env.PORT, () => {
 	log(`Passthrough API running on port ${process.env.PORT}`);
