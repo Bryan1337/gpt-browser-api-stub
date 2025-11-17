@@ -1,10 +1,10 @@
+import { getContext } from "@/data_handlers/context/getContext";
 import { getConversationDetails } from "@/data_handlers/conversation/getConversationDetails";
 import { setConversationDetails } from "@/data_handlers/conversation/setConversationDetails";
 import { hasAudioEnabled } from "@/data_handlers/enabled_audio/getAudioData";
 import { getAudioLanguage } from "@/data_handlers/enabled_audio/getAudioLanguage";
 import { removeAudioFile } from "@/data_handlers/enabled_audio/removeAudioFile";
 import { storePrompt } from "@/data_handlers/prompt/storePrompt";
-import { getChatGPTResponse } from "@/util/chatGPT";
 import { CommandHandleData } from "@/util/command";
 import { logError, logInfo } from "@/util/log";
 import {
@@ -14,8 +14,12 @@ import {
 	reply,
 	replyWithMessageMedia
 } from "@/util/message";
+import { getLocalChatResponse } from "@/util/request";
 import { getTTSAudioFilePath } from "@/util/tts";
 import { getMessageMediaFromFilePath } from "@/util/whatsappWeb";
+
+const UNUSUAL_ACTIVITY_ERROR =
+	"Our systems have detected unusual activity coming from your system. Please try again later.";
 
 export const handleChatQueueItem = async (
 	commandData: CommandHandleData,
@@ -37,10 +41,30 @@ export const handleChatQueueItem = async (
 		const conversationDetails = getConversationDetails(remote);
 		const promptWithSender = `[${contact.pushname}]: ${text}`;
 
-		const response = await getChatGPTResponse(
-			promptWithSender,
+		const { whatsappIdentifier } = conversationDetails;
+
+		const context = getContext(whatsappIdentifier);
+
+		if (context) {
+			logInfo("Using context:", context);
+		}
+
+		const promptWithContext = context
+			? `${context}\n ${prompt}`
+			: promptWithSender;
+
+		logInfo("Querying prompt:", promptWithSender);
+
+		const response = await getLocalChatResponse(
+			promptWithContext,
 			conversationDetails
 		);
+
+		if (response.answer.includes(UNUSUAL_ACTIVITY_ERROR)) {
+			reactError(message);
+			reply(message, `Something went wrong (${response.answer})`);
+			return;
+		}
 
 		setConversationDetails(remote, response.chatConversationId);
 
