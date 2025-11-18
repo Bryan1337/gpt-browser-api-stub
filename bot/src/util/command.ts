@@ -103,7 +103,7 @@ export function getCommandData(message: Message) {
 			const command = commands[commandKey];
 			return {
 				command,
-				commandKey: `${process.env.COMMAND_PREFIX}${commandKey}`
+				commandKey: commandText
 			};
 		}
 	}
