@@ -1,6 +1,4 @@
 import Queue, { QueueWorkerCallback } from "queue";
-import dotenv from "dotenv";
-dotenv.config();
 import { Message } from "whatsapp-web.js";
 import { logInfo } from "@/util/log";
 import { reactError, reply } from "@/util/message";

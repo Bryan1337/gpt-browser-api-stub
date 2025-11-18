@@ -2,9 +2,7 @@ import { Message } from "whatsapp-web.js";
 import { answerCommandResponse, getCommandData } from "@/util/command";
 import { logError, logWarning } from "@/util/log";
 import { checkWhitelistStatus } from "@/data_handlers/whitelist/checkWhitelistStatus";
-import dotenv from "dotenv";
 import { reactBlocked, reply } from "@/util/message";
-dotenv.config();
 
 export const messageHandler = async (message: Message) => {
 	try {

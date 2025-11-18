@@ -1,8 +1,18 @@
-export type ConversationRequestModule = typeof conversationRequestModule;
+export type ConversationRequestUtil = typeof conversationRequestUtil;
 
-const conversationRequestModule = async () => {
+interface ChatCompletionData {
+	requirementsResponseToken: string;
+	turnstileToken: string;
+	enforcementToken: string;
+	conversationId?: string;
+	newMessageId: string;
+	prompt: string;
+	parentMessageId: string;
+}
+
+const conversationRequestUtil = async () => {
 	const { get, post, request, getAccessToken } =
-		await window.requestsModule();
+		await window.gptBoyUtils.request();
 
 	const BASE_URL = "https://chatgpt.com";
 
@@ -62,7 +72,7 @@ const conversationRequestModule = async () => {
 
 	async function chatRequirements(
 		chatRequirementsRequestToken: string
-	): Promise<ChatRequirementsResponse> {
+	): Promise<ChatGPTResponse.ChatRequirements> {
 		return post(Url.CHAT_REQUIREMENTS, {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -74,7 +84,7 @@ const conversationRequestModule = async () => {
 
 	async function chatConversationId(
 		conversationId: string
-	): Promise<ChatConversationIdResponse> {
+	): Promise<ChatGPTResponse.ChatConversationId> {
 		return get(`${Url.CONVERSATION}/${conversationId}`, {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -103,4 +113,4 @@ const conversationRequestModule = async () => {
 	};
 };
 
-export default conversationRequestModule;
+export default conversationRequestUtil;

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { logError, logInfo } from "../../scripts/logHelper";
-import { getVideoDraftResponse } from "../../browser";
+import { logError, logInfo } from "@/util/log";
+import { getVideoDraftResponse } from "@/client/video";
 
 export async function draftVideoRequest(request: Request, response: Response) {
 	try {

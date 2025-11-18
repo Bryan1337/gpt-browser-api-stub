@@ -1,7 +1,7 @@
-export type VideoRequestModule = () => ReturnType<typeof videoRequestModule>;
+export type VideoRequestUtil = typeof videoRequestUtil;
 
-const videoRequestModule = async () => {
-	const { get, post, getAccessToken } = await window.requestsModule();
+const videoRequestUtil = async () => {
+	const { get, post, getAccessToken } = await window.gptBoyUtils.request();
 
 	const BASE_URL = "https://sora.chatgpt.com";
 
@@ -37,7 +37,7 @@ const videoRequestModule = async () => {
 		};
 	}
 
-	async function videoUsageRequest(): Promise<VideoUsageResponse> {
+	async function videoUsageRequest(): Promise<SoraResponse.Usage> {
 		return get(Url.USAGE, {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -46,7 +46,7 @@ const videoRequestModule = async () => {
 		});
 	}
 
-	async function videoDraftRequest(): Promise<VideoDraftsResponse> {
+	async function videoDraftRequest(): Promise<SoraResponse.Drafts> {
 		return get(Url.VIDEO_DRAFTS, {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -55,7 +55,7 @@ const videoRequestModule = async () => {
 		});
 	}
 
-	async function videoPendingRequest(): Promise<VideoPendingResponse> {
+	async function videoPendingRequest(): Promise<SoraResponse.Pending> {
 		return get(Url.PENDING, {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -64,7 +64,7 @@ const videoRequestModule = async () => {
 		});
 	}
 
-	async function videoRequest(prompt: string): Promise<VideoResponse> {
+	async function videoRequest(prompt: string): Promise<SoraResponse.Video> {
 		const body = getVideoBodyParams(prompt);
 		return post(Url.CREATE, {
 			headers: {
@@ -83,4 +83,4 @@ const videoRequestModule = async () => {
 	};
 };
 
-export default videoRequestModule;
+export default videoRequestUtil;

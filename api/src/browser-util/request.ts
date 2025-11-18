@@ -1,6 +1,6 @@
-export type RequestsModule = typeof requestsModule;
+export type RequestUtil = typeof requestUtil;
 
-const requestsModule = async () => {
+const requestUtil = async () => {
 	function delay(ms: number) {
 		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
@@ -40,4 +40,4 @@ const requestsModule = async () => {
 	};
 };
 
-export default requestsModule;
+export default requestUtil;

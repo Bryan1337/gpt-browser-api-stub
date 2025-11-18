@@ -1,6 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
-import { logError } from "./log";
+import { logError } from "@/util/log";
 
 export interface ConversationDetails {
 	gptConversationId?: string;
@@ -38,23 +36,14 @@ export const getLocalChatResponse = async (
 export const getLocalVideoResponse = async (prompt: string) => {
 	const response = await fetch(`${process.env.API_URL}/video`, {
 		method: "POST",
-		body: JSON.stringify({
-			prompt
-		}),
+		body: JSON.stringify({ prompt }),
 		headers: {
 			"content-type": "application/json"
 			// 'Authorization': `Bearer ${someServerToken}`,
 		}
 	});
 
-	const responseJson = await response.json();
-
-	if (responseJson.error) {
-		logError(responseJson.error);
-		throw new Error(responseJson.error);
-	}
-
-	return responseJson;
+	return await response.json();
 };
 
 export const getLocalPendingVideoResponse = async (taskId: string) => {

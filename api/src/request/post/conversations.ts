@@ -1,8 +1,8 @@
-import { getConversationsResponse } from "../../browser";
-import { logError, logInfo } from "../../scripts/logHelper";
-import { getMessageId } from "../../util/message";
+import { getConversationsResponse } from "@/client/conversation";
+import { getMessageId } from "@/util/message";
 import { v4 as uuidv4 } from "uuid";
 import { Request, Response } from "express";
+import { logError, logInfo } from "@/util/log";
 
 export async function conversationsRequest(
 	request: Request,
@@ -20,7 +20,9 @@ export async function conversationsRequest(
 			parentMessageId,
 		};
 
-		const conversationsResponse = await request.pages.chatGptPage.evaluate(
+		const { chatGptPage } = request.pages;
+
+		const conversationsResponse = await chatGptPage.evaluate(
 			getConversationsResponse,
 			params
 		);

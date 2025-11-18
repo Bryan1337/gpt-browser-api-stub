@@ -41,7 +41,7 @@ type CommandKey =
 	| "image"
 	| "video";
 
-export const commands: Record<CommandKey, Command> = {
+export const getCommands = (): Record<CommandKey, Command> => ({
 	chat: {
 		alias: "@me",
 		commandAlias: `@${process.env.USER_WHATSAPP_ID}`,
@@ -86,9 +86,10 @@ export const commands: Record<CommandKey, Command> = {
 		handle: videoCommand,
 		description: `Sends a video. Usage:\n \`\`\`!video <video prompt>\`\`\``
 	}
-};
+});
 
 export function getCommandData(message: Message) {
+	const commands = getCommands();
 	const commandKeys = Object.keys(commands) as CommandKey[];
 	const text = sanitize(message.body);
 
@@ -128,6 +129,7 @@ export async function answerCommandResponse(message: Message) {
 }
 
 export function getFormattedCommands() {
+	const commands = getCommands();
 	return Object.entries(commands)
 		.map(([commandKey, command]) => {
 			const commandText =

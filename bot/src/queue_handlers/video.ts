@@ -27,9 +27,19 @@ export async function handleVideoQueueItem(
 		return;
 	}
 
-	const { taskId, numVideosRemaining } = await getLocalVideoResponse(text);
-
 	const sentMessage = await reply(message, "Generating video...");
+
+	const localVideoResponse = await getLocalVideoResponse(text);
+
+	if (localVideoResponse.error) {
+		logError(localVideoResponse.error);
+		reactError(message);
+		edit(sentMessage, localVideoResponse.error);
+
+		return;
+	}
+
+	const { taskId, numVideosRemaining } = localVideoResponse;
 
 	while (true) {
 		try {
@@ -50,6 +60,13 @@ export async function handleVideoQueueItem(
 				await pause(delayBetweenAttempts);
 
 				continue;
+			}
+
+			if (task.error) {
+				logError(task.error);
+				reply(sentMessage, task.error);
+
+				return;
 			}
 
 			const localFileUrl = await saveExternalFile(

@@ -1,22 +1,6 @@
-export type SentinelModule = typeof sentinelModule;
+export type SentinelUtil = typeof sentinelUtil;
 
-declare global {
-	interface Performance {
-		memory: {
-			jsHeapSizeLimit: number;
-			totalJSHeapSize: number;
-			usedJSHeapSize: number;
-		};
-	}
-	interface Window {
-		hashwasm: {
-			sha3: (input: string, bits: number) => Promise<string>;
-		};
-		sentinelModule: SentinelModule;
-	}
-}
-
-const sentinelModule = () => {
+const sentinelUtil = () => {
 	const answers: Map<string, Promise<string>> = new Map();
 	const maxAttempts: number = 5e5;
 	const requirementsSeed: string = `${Math.random()}`;
@@ -57,7 +41,10 @@ const sentinelModule = () => {
 			config[configTimingIndex] = Math.round(performance.now() - timing);
 			const encoded = encodeString(config);
 			const str = seed + encoded;
-			const hashedStr = await window["hashwasm"].sha3(str, sha3Bits);
+			const hashedStr = await window.gptBoyUtils.hashWasm.sha3(
+				str,
+				sha3Bits
+			);
 			if (hashedStr.substring(0, difficultyLength) <= difficulty) {
 				return encoded;
 			}
@@ -125,4 +112,4 @@ const sentinelModule = () => {
 	};
 };
 
-export default sentinelModule;
+export default sentinelUtil;

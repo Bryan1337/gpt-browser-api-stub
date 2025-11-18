@@ -1,6 +1,6 @@
-import { logError, logInfo } from "../../scripts/logHelper";
 import { Request, Response } from "express";
-import { getPendingVideoResponse } from "../../browser";
+import { logError, logInfo } from "@/util/log";
+import { getPendingVideoResponse } from "@/client/video";
 
 export async function pendingVideoRequest(
 	request: Request,

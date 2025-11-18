@@ -1,6 +1,6 @@
-export type UtilityModule = typeof utilityModule;
+export type TimeUtil = typeof timeUtil;
 
-const utilityModule = () => {
+const timeUtil = () => {
 	function formatSeconds(seconds: number) {
 		const days = Math.floor(seconds / 86400);
 		seconds %= 86400;
@@ -29,9 +29,14 @@ const utilityModule = () => {
 		return parts.join(", ");
 	}
 
+	async function pause(amountOfMs: number) {
+		return await new Promise((resolve) => setTimeout(resolve, amountOfMs));
+	}
+
 	return {
+		pause,
 		formatSeconds,
 	};
 };
 
-export default utilityModule;
+export default timeUtil;

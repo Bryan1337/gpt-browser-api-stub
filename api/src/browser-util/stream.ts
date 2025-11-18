@@ -1,6 +1,6 @@
-export type StreamModule = typeof streamModule;
+export type StreamUtil = typeof streamUtil;
 
-const streamModule = () => {
+const streamUtil = () => {
 	enum Status {
 		FINISHED = "finished_successfully",
 	}
@@ -85,4 +85,4 @@ const streamModule = () => {
 	return { parseResponse };
 };
 
-export default streamModule;
+export default streamUtil;

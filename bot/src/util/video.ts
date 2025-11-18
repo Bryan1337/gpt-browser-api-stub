@@ -1,5 +1,5 @@
-import { logError } from "@/util/log";
 import { edit } from "@/util/message";
+import { normalizeProgress } from "@/util/number";
 import {
 	getLocalDraftVideoResponse,
 	getLocalPendingVideoResponse
@@ -18,15 +18,6 @@ function isProgressResponse(
 	return "progress" in response;
 }
 
-function normalizeProgress(progress: number | null) {
-	if (progress === null || isNaN(progress)) {
-		return 0;
-	}
-
-	const clamped = Math.max(0, Math.min(1, progress));
-	return Math.round(clamped * 100 * 100) / 100;
-}
-
 export async function requestVideo(taskId: string, message: Message) {
 	const response = await getLocalPendingVideoResponse(taskId);
 
@@ -40,7 +31,5 @@ export async function requestVideo(taskId: string, message: Message) {
 		return null;
 	}
 
-	logError(`Received unknown response:`, response);
-
-	throw new Error(response);
+	return response;
 }

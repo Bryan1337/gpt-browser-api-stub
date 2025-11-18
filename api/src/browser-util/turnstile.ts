@@ -1,4 +1,4 @@
-export type TurnstileModule = typeof turnstileModule;
+export type TurnstileUtil = typeof turnstileUtil;
 
 declare global {
 	interface Window {
@@ -13,7 +13,7 @@ interface Turnstile {
 	render: (...args: unknown[]) => void;
 }
 
-const turnstileModule = () => {
+const turnstileUtil = () => {
 	enum TurnstileStatus {
 		Idle = "idle",
 		Loading = "loading",
@@ -68,7 +68,6 @@ const turnstileModule = () => {
 
 					resolve(btoa("" + processedCount));
 				} catch (error) {
-					console.log({ error });
 					resolve(btoa(processedCount + ": " + error));
 				}
 			});
@@ -327,7 +326,7 @@ const turnstileModule = () => {
 
 	const registry = registryHelper();
 
-	class TurnstileModule {
+	class TurnstileUtil {
 		private app = "0x4AAAAAAASbHVR44GU82lOI";
 		private status = TurnstileStatus.Idle;
 		private turnstileInstancePromise: Promise<
@@ -529,7 +528,7 @@ const turnstileModule = () => {
 		};
 	}
 
-	return new TurnstileModule();
+	return new TurnstileUtil();
 };
 
-export default turnstileModule;
+export default turnstileUtil;
