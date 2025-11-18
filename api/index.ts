@@ -33,10 +33,6 @@ const soraUrl = "https://sora.chatgpt.com/explore";
 chatGptPage.goto(chatGptUrl);
 soraPage.goto(soraUrl);
 
-setTimeout(async () => {
-	await importBrowserScripts(chatGptPage);
-}, 5000);
-
 server.use(async (request, response, next) => {
 	await importBrowserScripts(chatGptPage);
 	await importBrowserScripts(soraPage);

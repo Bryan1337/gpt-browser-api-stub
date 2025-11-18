@@ -1,4 +1,4 @@
-export type SentinelModule = () => ReturnType<typeof sentinelModule>;
+export type SentinelModule = typeof sentinelModule;
 
 declare global {
 	interface Performance {

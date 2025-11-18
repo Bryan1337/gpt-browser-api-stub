@@ -1,4 +1,4 @@
-export type TurnstileModule = () => ReturnType<typeof turnstileModule>;
+export type TurnstileModule = typeof turnstileModule;
 
 declare global {
 	interface Window {

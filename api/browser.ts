@@ -3,6 +3,9 @@ import { RequestsModule } from "./browser-scripts/requestsModule";
 import { SentinelModule } from "./browser-scripts/sentinelModule";
 import { StreamModule } from "./browser-scripts/streamModule";
 import { TurnstileModule } from "./browser-scripts/turnstileModule";
+import { VideoRequestModule } from "./browser-scripts/videoRequestModule";
+import { ConversationRequestModule } from "./browser-scripts/conversationRequestModule";
+import { UtilityModule } from "./browser-scripts/utilityModule";
 
 interface ConversationRequestParams {
 	body: {
@@ -22,10 +25,13 @@ declare global {
 		};
 	}
 	interface Window {
+		utilityModule: UtilityModule;
 		streamModule: StreamModule;
-		requestsModule: RequestsModule;
 		sentinelModule: SentinelModule;
 		turnstileModule: TurnstileModule;
+		requestsModule: RequestsModule;
+		videoRequestModule: VideoRequestModule;
+		conversationRequestModule: ConversationRequestModule;
 	}
 
 	namespace Express {
@@ -54,7 +60,7 @@ export const getConversationsResponse = async ({
 	try {
 		const {
 			streamModule,
-			requestsModule,
+			conversationRequestModule,
 			sentinelModule,
 			turnstileModule,
 		} = window;
@@ -62,7 +68,7 @@ export const getConversationsResponse = async ({
 		const stream = streamModule();
 		const sentinel = sentinelModule();
 		const turnstile = turnstileModule();
-		const request = await requestsModule("chat-gpt");
+		const request = await conversationRequestModule();
 
 		const chatRequirementsRequestToken =
 			await sentinel.getRequirementsToken();
@@ -158,39 +164,13 @@ export const getVideoResponse = async ({
 }: {
 	body: { prompt: string };
 }) => {
-	function formatSeconds(seconds: number) {
-		const days = Math.floor(seconds / 86400);
-		seconds %= 86400;
-
-		const hours = Math.floor(seconds / 3600);
-		seconds %= 3600;
-
-		const minutes = Math.floor(seconds / 60);
-		seconds = Math.floor(seconds % 60);
-
-		const parts = [];
-
-		if (days > 0) {
-			parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-		}
-		if (hours > 0) {
-			parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-		}
-		if (minutes > 0) {
-			parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-		}
-		if (seconds > 0 || parts.length === 0) {
-			parts.push(`${seconds} second${seconds !== 1 ? "s" : ""}`);
-		}
-
-		return parts.join(", ");
-	}
+	const { formatSeconds } = window.utilityModule();
 
 	try {
 		const { prompt } = body;
 
-		const requestsModule = window.requestsModule;
-		const request = await requestsModule("sora");
+		const { videoRequestModule } = window;
+		const request = await videoRequestModule();
 
 		const usageResponse = await request.videoUsageRequest();
 
@@ -228,8 +208,8 @@ export const getPendingVideoResponse = async ({
 }) => {
 	const { taskId } = body;
 
-	const requestsModule = window.requestsModule;
-	const request = await requestsModule("sora");
+	const { videoRequestModule } = window;
+	const request = await videoRequestModule();
 
 	const pendingResponse = await request.videoPendingRequest();
 
@@ -265,8 +245,8 @@ export const getVideoDraftResponse = async ({
 		const { taskId } = body;
 
 		const fetchDraft = async () => {
-			const requestsModule = window.requestsModule;
-			const request = await requestsModule("sora");
+			const { videoRequestModule } = window;
+			const request = await videoRequestModule();
 
 			return await request.videoDraftRequest();
 		};

@@ -1,4 +1,4 @@
-export type StreamModule = () => ReturnType<typeof streamModule>;
+export type StreamModule = typeof streamModule;
 
 const streamModule = () => {
 	enum Status {
