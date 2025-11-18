@@ -59,6 +59,10 @@ declare global {
 }
 
 const server = getServer();
+const hasVPN = !!process.env.VPN_EXTENSION_PATH;
+const vpnArgs = hasVPN
+	? [`--load-extension=${process.env.VPN_EXTENSION_PATH}`]
+	: [];
 
 puppeteer.use(StealthPlugin());
 
@@ -67,7 +71,7 @@ const browser = await puppeteer.launch({
 	executablePath: executablePath(),
 	userDataDir: process.env.TMP_FOLDER,
 	devtools: true,
-	args: [`--load-extension=${process.env.VPN_EXTENSION_PATH}`],
+	args: vpnArgs,
 });
 
 const [chatGptPage] = await browser.pages();
@@ -79,7 +83,7 @@ const soraUrl = "https://sora.chatgpt.com/explore";
 chatGptPage.goto(chatGptUrl);
 soraPage.goto(soraUrl);
 
-server.use(async (request, response, next) => {
+server.use(async (request, _, next) => {
 	await importBrowserScripts(chatGptPage);
 	await importBrowserScripts(soraPage);
 	request.pages = { chatGptPage, soraPage };
