@@ -3,16 +3,15 @@ import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 
-const EXCLUDES = new Set(["global.d.ts", "index.ts"]);
-
 async function loadScripts() {
 	const directory = dirname(fileURLToPath(import.meta.url));
+	const currentFile = path.basename(fileURLToPath(import.meta.url));
 
 	const files = fs
 		.readdirSync(directory, { withFileTypes: true })
 		.filter((file) => file.isFile())
 		.map((file) => file.name)
-		.filter((file) => !EXCLUDES.has(file));
+		.filter((file) => file !== currentFile);
 
 	const scriptMap: Record<string, string> = {};
 
