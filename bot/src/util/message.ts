@@ -1,9 +1,4 @@
-import {
-	Message,
-	MessageContent,
-	MessageMedia,
-	MessageSendOptions
-} from "whatsapp-web.js";
+import { Message, MessageContent, MessageMedia, MessageSendOptions } from "whatsapp-web.js";
 
 export function reply(message: Message, text: string) {
 	return message.reply(`${process.env.BOT_PREFIX} ${text}`);
@@ -16,13 +11,9 @@ export function edit(message: Message, text: string) {
 export function replyWithMedia(
 	message: Message,
 	text: MessageContent,
-	messageSendOptions: MessageSendOptions
+	messageSendOptions: MessageSendOptions,
 ) {
-	return message.reply(
-		`${process.env.BOT_PREFIX} ${text}`,
-		undefined,
-		messageSendOptions
-	);
+	return message.reply(`${process.env.BOT_PREFIX} ${text}`, undefined, messageSendOptions);
 }
 
 export function replyWithMessageMedia(message: Message, audio: MessageMedia) {

@@ -7,7 +7,7 @@ export interface ConversationDetails {
 
 export const getLocalChatResponse = async (
 	prompt: string,
-	conversationDetails: ConversationDetails
+	conversationDetails: ConversationDetails,
 ) => {
 	const { gptConversationId } = conversationDetails;
 
@@ -15,12 +15,12 @@ export const getLocalChatResponse = async (
 		method: "POST",
 		body: JSON.stringify({
 			prompt,
-			gptConversationId
+			gptConversationId,
 		}),
 		headers: {
-			"content-type": "application/json"
+			"content-type": "application/json",
 			// 'Authorization': `Bearer ${someServerToken}`,
-		}
+		},
 	});
 
 	const responseJson = await response.json();
@@ -38,24 +38,21 @@ export const getLocalVideoResponse = async (prompt: string) => {
 		method: "POST",
 		body: JSON.stringify({ prompt }),
 		headers: {
-			"content-type": "application/json"
+			"content-type": "application/json",
 			// 'Authorization': `Bearer ${someServerToken}`,
-		}
+		},
 	});
 
 	return await response.json();
 };
 
 export const getLocalPendingVideoResponse = async (taskId: string) => {
-	const response = await fetch(
-		`${process.env.API_URL}/pending?taskId=${taskId}`,
-		{
-			method: "GET",
-			headers: {
-				"content-type": "application/json"
-			}
-		}
-	);
+	const response = await fetch(`${process.env.API_URL}/pending?taskId=${taskId}`, {
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+		},
+	});
 
 	const responseJson = await response.json();
 
@@ -68,15 +65,12 @@ export const getLocalPendingVideoResponse = async (taskId: string) => {
 };
 
 export const getLocalDraftVideoResponse = async (taskId: string) => {
-	const response = await fetch(
-		`${process.env.API_URL}/draft?taskId=${taskId}`,
-		{
-			method: "GET",
-			headers: {
-				"content-type": "application/json"
-			}
-		}
-	);
+	const response = await fetch(`${process.env.API_URL}/draft?taskId=${taskId}`, {
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+		},
+	});
 
 	const responseJson = await response.json();
 

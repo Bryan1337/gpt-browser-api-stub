@@ -5,7 +5,7 @@ const BASE_URL = "https://api.deepai.org";
 
 enum DeepAiModel {
 	HD = "hd",
-	STANDARD = "standard"
+	STANDARD = "standard",
 }
 
 interface DeepAiImageRequestData {
@@ -30,12 +30,12 @@ const baseImageRequestData: DeepAiImageRequestData = {
 	image_generator_version: DeepAiModel.HD,
 	use_old_model: false,
 	quality: true,
-	genius_preference: "classic"
+	genius_preference: "classic",
 };
 
 const baseVideoRequestData: DeepAIVideoRequestData = {
 	textPrompt: "",
-	dimensions: JSON.stringify({ width: 1024, height: 1024 })
+	dimensions: JSON.stringify({ width: 1024, height: 1024 }),
 };
 
 function generateBoundary() {
@@ -63,7 +63,7 @@ const getCookies = () => {
 		messages: messagesToken,
 		csrftoken: csrfToken,
 		sessionid: sessionId,
-		user_sees_ads: false
+		user_sees_ads: false,
 	};
 
 	return Object.entries(cookieMap)
@@ -80,15 +80,15 @@ export const generateDeepAiImage = async (text: string) => {
 			"Content-Type": `multipart/form-data; boundary=${boundary}`,
 			"User-Agent": MOCK_USER_AGENT,
 			"Api-Key": generateTryItApiKey(MOCK_USER_AGENT),
-			Cookie: getCookies()
+			"Cookie": getCookies(),
 		},
 		body: buildMultipartBody(
 			{
 				...baseImageRequestData,
-				text
+				text,
 			},
-			boundary
-		)
+			boundary,
+		),
 	});
 
 	const json = await response.json();
@@ -111,15 +111,15 @@ export const generateDeepAiVideo = async (text: string) => {
 			"Content-Type": `multipart/form-data; boundary=${boundary}`,
 			"User-Agent": MOCK_USER_AGENT,
 			"Api-Key": generateTryItApiKey(MOCK_USER_AGENT),
-			Cookie: getCookies()
+			"Cookie": getCookies(),
 		},
 		body: buildMultipartBody(
 			{
 				...baseVideoRequestData,
-				textPrompt: text
+				textPrompt: text,
 			},
-			boundary
-		)
+			boundary,
+		),
 	});
 
 	const json = await response.json();

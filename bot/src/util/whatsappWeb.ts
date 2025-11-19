@@ -16,9 +16,9 @@ export const getWhatsappClient = () => {
 				"--disable-accelerated-2d-canvas",
 				"--no-first-run",
 				"--no-zygote",
-				"--disable-dev-shm-usage"
-			]
-		}
+				"--disable-dev-shm-usage",
+			],
+		},
 	});
 };
 
@@ -30,9 +30,6 @@ export const getMessageMediaFromBase64 = (mimeType: string, data: string) => {
 	return new MessageMedia(mimeType, data);
 };
 
-export const getMessageMediaFromUrl = async (
-	url: string,
-	options?: MediaFromURLOptions
-) => {
+export const getMessageMediaFromUrl = async (url: string, options?: MediaFromURLOptions) => {
 	return await MessageMedia.fromUrl(url, options);
 };

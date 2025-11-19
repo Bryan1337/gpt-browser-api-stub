@@ -12,7 +12,7 @@ import {
 	reactPending,
 	reactSuccess,
 	reply,
-	replyWithMessageMedia
+	replyWithMessageMedia,
 } from "@/util/message";
 import { getLocalChatResponse } from "@/util/request";
 import { getTTSAudioFilePath } from "@/util/tts";
@@ -21,12 +21,12 @@ import { getMessageMediaFromFilePath } from "@/util/whatsappWeb";
 const UNUSUAL_ACTIVITY_ERROR =
 	"Our systems have detected unusual activity coming from your system. Please try again later.";
 
-export const handleChatQueueItem = async (
+export async function handleChatQueueJob(
 	commandData: CommandHandleData,
 	attempt = 1,
 	maxAttempts = 10,
-	delayBetweenAttempts = 5e3
-) => {
+	delayBetweenAttempts = 5e3,
+) {
 	const { message, text } = commandData;
 	const { remote } = message.id;
 
@@ -49,16 +49,11 @@ export const handleChatQueueItem = async (
 			logInfo("Using context:", context);
 		}
 
-		const promptWithContext = context
-			? `${context}\n ${promptWithSender}`
-			: promptWithSender;
+		const promptWithContext = context ? `${context}\n ${promptWithSender}` : promptWithSender;
 
 		logInfo("Querying prompt:", promptWithSender);
 
-		const response = await getLocalChatResponse(
-			promptWithContext,
-			conversationDetails
-		);
+		const response = await getLocalChatResponse(promptWithContext, conversationDetails);
 
 		if (response.answer.includes(UNUSUAL_ACTIVITY_ERROR)) {
 			reactError(message);
@@ -82,10 +77,7 @@ export const handleChatQueueItem = async (
 
 			const finalResponseMessage = response.error ?? response.answer;
 
-			await reply(
-				message,
-				`(${response.modelSlug})\n\n${finalResponseMessage}`
-			);
+			await reply(message, `(${response.modelSlug})\n\n${finalResponseMessage}`);
 		}
 
 		const responseEndTime = Date.now();
@@ -98,30 +90,21 @@ export const handleChatQueueItem = async (
 		const responseLength = response.answer.length;
 
 		logInfo(
-			`Request handled in ${requestDurationInSeconds} seconds. Response length: ${responseLength} characters.`
+			`Request handled in ${requestDurationInSeconds} seconds. Response length: ${responseLength} characters.`,
 		);
 
-		storePrompt(
-			contact.pushname,
-			remote,
-			text,
-			response.answer,
-			requestDuration
-		);
+		storePrompt(contact.pushname, remote, text, response.answer, requestDuration);
 	} catch (error) {
-		logError(
-			`Error handling queue item (attempt ${attempt})`,
-			error as string
-		);
+		logError(`Error handling queue item (attempt ${attempt})`, error as string);
 
 		if (attempt < maxAttempts) {
 			await new Promise((resolve) => {
 				setTimeout(async () => {
-					await handleChatQueueItem(
+					await handleChatQueueJob(
 						commandData,
 						attempt + 1,
 						maxAttempts,
-						delayBetweenAttempts
+						delayBetweenAttempts,
 					);
 
 					resolve(true);
@@ -134,4 +117,4 @@ export const handleChatQueueItem = async (
 		reactError(message);
 		reply(message, `Something went wrong (${error})`);
 	}
-};
+}

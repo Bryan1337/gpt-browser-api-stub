@@ -35,10 +35,7 @@ export const initializeSession = async (token: string) => {
 	});
 };
 
-const extractFinishedClipFromFeedJson = (
-	feedJson: { clips: Clip[] },
-	clipIds: string[]
-) => {
+const extractFinishedClipFromFeedJson = (feedJson: { clips: Clip[] }, clipIds: string[]) => {
 	const { clips } = feedJson;
 
 	for (const clip of clips) {
@@ -48,11 +45,7 @@ const extractFinishedClipFromFeedJson = (
 			throw new Error(clip.metadata.error_message);
 		}
 
-		if (
-			clip.audio_url &&
-			clip.status === "complete" &&
-			clipIds.includes(clip.id)
-		) {
+		if (clip.audio_url && clip.status === "complete" && clipIds.includes(clip.id)) {
 			return clip;
 		}
 	}
@@ -75,34 +68,25 @@ export const getClient = async (sessionToken: string) => {
 	return await clientResponse.json();
 };
 
-export const getClientSessionTouch = async (
-	sessionId: string,
-	sessionToken: string
-) => {
+export const getClientSessionTouch = async (sessionId: string, sessionToken: string) => {
 	const clientSessionTouchUrl = `${SUNO_AI_CLERK_BASE_URL}/sessions/${sessionId}/touch`;
 
 	const params = new URLSearchParams();
 	params.append("_clerk_js_version", CLERK_JS_VERSION);
 	params.append("__clerk_api_version", CLERK_API_VERSION);
 
-	const clientSessionTouchResponse = await fetch(
-		`${clientSessionTouchUrl}?${params}`,
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
-				Cookie: `__client=${sessionToken}`,
-			},
-		}
-	);
+	const clientSessionTouchResponse = await fetch(`${clientSessionTouchUrl}?${params}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded",
+			"Cookie": `__client=${sessionToken}`,
+		},
+	});
 
 	return await clientSessionTouchResponse.json();
 };
 
-export const getClientTokens = async (
-	sessionId: string,
-	sessionToken: string
-) => {
+export const getClientTokens = async (sessionId: string, sessionToken: string) => {
 	const clientSessionUrl = `${SUNO_AI_CLERK_BASE_URL}/sessions/${sessionId}/tokens`;
 
 	const params = new URLSearchParams();
@@ -112,27 +96,21 @@ export const getClientTokens = async (
 		method: "POST",
 		headers: {
 			"Content-Type": "application/x-www-form-urlencoded",
-			Cookie: `__client=${sessionToken}`,
+			"Cookie": `__client=${sessionToken}`,
 		},
 	});
 
 	return await clientSessionResponse.json();
 };
 
-export const getFeedV2 = async (
-	params: URLSearchParams,
-	clientToken: string
-) => {
-	const feedV2Response = await fetch(
-		`${SUNO_AI_BASE_URL}/feed/v2?${params}`,
-		{
-			method: "GET",
-			headers: {
-				Authorization: `Bearer ${clientToken}`,
-				"Content-Type": "application/json",
-			},
-		}
-	);
+export const getFeedV2 = async (params: URLSearchParams, clientToken: string) => {
+	const feedV2Response = await fetch(`${SUNO_AI_BASE_URL}/feed/v2?${params}`, {
+		method: "GET",
+		headers: {
+			"Authorization": `Bearer ${clientToken}`,
+			"Content-Type": "application/json",
+		},
+	});
 
 	return await feedV2Response.json();
 };
@@ -163,7 +141,7 @@ export const getGenerateV2 = async (prompt: string, clientToken: string) => {
 	const generateV2Response = await fetch(`${SUNO_AI_BASE_URL}/generate/v2/`, {
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${clientToken}`,
+			"Authorization": `Bearer ${clientToken}`,
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({
@@ -188,16 +166,13 @@ export const getGenerateV2 = async (prompt: string, clientToken: string) => {
 };
 
 export const getBillingInfo = async (clientToken: string) => {
-	const billingInfoResponse = await fetch(
-		`${SUNO_AI_BASE_URL}/billing/info/`,
-		{
-			method: "GET",
-			headers: {
-				Authorization: `Bearer ${clientToken}`,
-				"Content-Type": "application/json",
-			},
-		}
-	);
+	const billingInfoResponse = await fetch(`${SUNO_AI_BASE_URL}/billing/info/`, {
+		method: "GET",
+		headers: {
+			"Authorization": `Bearer ${clientToken}`,
+			"Content-Type": "application/json",
+		},
+	});
 
 	return await billingInfoResponse.json();
 };

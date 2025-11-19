@@ -1,11 +1,9 @@
-const tryItApiKeySuffix =
-	"hackers_become_a_little_stinkier_every_time_they_hack";
+const tryItApiKeySuffix = "hackers_become_a_little_stinkier_every_time_they_hack";
 
 export const generateTryItApiKey = (userAgent: string) => {
 	var myrandomstr = Math.round(Math.random() * 100000000000) + "";
 	var myhashfunction = (function () {
-		for (var a = [], b = 0; 64 > b; )
-			a[b] = 0 | (4294967296 * Math.sin(++b % Math.PI));
+		for (var a = [], b = 0; 64 > b; ) a[b] = 0 | (4294967296 * Math.sin(++b % Math.PI));
 		return function (c) {
 			var d,
 				e,
@@ -15,8 +13,7 @@ export const generateTryItApiKey = (userAgent: string) => {
 				l = unescape(encodeURI(c)) + "\u0080",
 				k = l.length;
 			c = (--k / 4 + 2) | 15;
-			for (h[--c] = 8 * k; ~k; )
-				h[k >> 2] |= l.charCodeAt(k) << (8 * k--);
+			for (h[--c] = 8 * k; ~k; ) h[k >> 2] |= l.charCodeAt(k) << (8 * k--);
 			for (b = l = 0; b < c; b += 16) {
 				for (
 					k = g;
@@ -26,22 +23,14 @@ export const generateTryItApiKey = (userAgent: string) => {
 						d +
 							(((f =
 								k[0] +
-								[
-									(d & e) | (~d & f),
-									(f & d) | (~f & e),
-									d ^ e ^ f,
-									e ^ (d | ~f),
-								][(k = l >> 4)] +
+								[(d & e) | (~d & f), (f & d) | (~f & e), d ^ e ^ f, e ^ (d | ~f)][
+									(k = l >> 4)
+								] +
 								a[l] +
-								~~h[
-									b |
-										([l, 5 * l + 1, 3 * l + 5, 7 * l][k] &
-											15)
-								]) <<
-								(k = [
-									7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23,
-									6, 10, 15, 21,
-								][4 * k + (l++ % 4)])) |
+								~~h[b | ([l, 5 * l + 1, 3 * l + 5, 7 * l][k] & 15)]) <<
+								(k = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][
+									4 * k + (l++ % 4)
+								])) |
 								(f >>> -k)),
 						d,
 						e,
@@ -50,8 +39,7 @@ export const generateTryItApiKey = (userAgent: string) => {
 					(d = k[1] | 0), (e = k[2]);
 				for (l = 4; l; ) g[--l] += k[l];
 			}
-			for (c = ""; 32 > l; )
-				c += ((g[l >> 3] >> (4 * (1 ^ l++))) & 15).toString(16);
+			for (c = ""; 32 > l; ) c += ((g[l >> 3] >> (4 * (1 ^ l++))) & 15).toString(16);
 			return c.split("").reverse().join("");
 		};
 	})();
@@ -62,11 +50,8 @@ export const generateTryItApiKey = (userAgent: string) => {
 		myhashfunction(
 			userAgent +
 				myhashfunction(
-					userAgent +
-						myhashfunction(
-							userAgent + myrandomstr + tryItApiKeySuffix
-						)
-				)
+					userAgent + myhashfunction(userAgent + myrandomstr + tryItApiKeySuffix),
+				),
 		);
 	return tryitApiKey;
 };

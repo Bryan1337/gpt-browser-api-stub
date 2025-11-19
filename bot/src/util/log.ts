@@ -21,9 +21,5 @@ export const logError = (...messages: unknown[]) => {
 const log = (logLevel: string, ...messages: unknown[]) => {
 	const currentDate = new Date();
 
-	console.log(
-		`[${currentDate.toLocaleString()}]`,
-		`[${logLevel}]`,
-		...messages
-	);
+	console.log(`[${currentDate.toLocaleString()}]`, `[${logLevel}]`, ...messages);
 };

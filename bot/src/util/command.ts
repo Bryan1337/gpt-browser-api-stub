@@ -46,46 +46,46 @@ export const getCommands = (): Record<CommandKey, Command> => ({
 		alias: "@me",
 		commandAlias: `@${process.env.USER_WHATSAPP_ID}`,
 		handle: chatCommand,
-		description: `@me for ChatGPT responses`
+		description: `@me for ChatGPT responses`,
 	},
 	help: {
 		handle: helpCommand,
 		description: `Shows the list of commands. Usage:\n \`\`\`!help\`\`\``,
-		alwaysAllowed: true
+		alwaysAllowed: true,
 	},
 	register: {
 		handle: registerCommand,
 		description: `Registers a chat/conversation with the bot. Usage:\n \`\`\`!register <registration key>\`\`\``,
-		alwaysAllowed: true
+		alwaysAllowed: true,
 	},
 	context: {
 		handle: setContextCommand,
-		description: `Adds/updates the context for the current chat/conversation. Usage:\n \`\`\`!context <context>\`\`\``
+		description: `Adds/updates the context for the current chat/conversation. Usage:\n \`\`\`!context <context>\`\`\``,
 	},
 	getContext: {
 		handle: getContextCommand,
-		description: `Shows the context for the current chat/conversation. Usage:\n \`\`\`!getContext\`\`\``
+		description: `Shows the context for the current chat/conversation. Usage:\n \`\`\`!getContext\`\`\``,
 	},
 	clearContext: {
 		handle: clearContextCommand,
-		description: `Clears the context for the current chat/conversation. Usage:\n \`\`\`!clearContext\`\`\``
+		description: `Clears the context for the current chat/conversation. Usage:\n \`\`\`!clearContext\`\`\``,
 	},
 	enableAudio: {
 		handle: enableAudioCommand,
-		description: `Enables audio responses. Usage:\n \`\`\`!enableAudio <languagecode> (nl, en, fr etc...)\`\`\`\n Supported languages are: ${getSupportedLanguagesString()}`
+		description: `Enables audio responses. Usage:\n \`\`\`!enableAudio <languagecode> (nl, en, fr etc...)\`\`\`\n Supported languages are: ${getSupportedLanguagesString()}`,
 	},
 	disableAudio: {
 		handle: disableAudioCommand,
-		description: `Disables audio responses. Usage:\n \`\`\`!disableAudio\`\`\``
+		description: `Disables audio responses. Usage:\n \`\`\`!disableAudio\`\`\``,
 	},
 	image: {
 		handle: imageCommand,
-		description: `Sends an image. Usage:\n \`\`\`!image <image prompt>\`\`\``
+		description: `Sends an image. Usage:\n \`\`\`!image <image prompt>\`\`\``,
 	},
 	video: {
 		handle: videoCommand,
-		description: `Sends a video. Usage:\n \`\`\`!video <video prompt>\`\`\``
-	}
+		description: `Sends a video. Usage:\n \`\`\`!video <video prompt>\`\`\``,
+	},
 });
 
 export function getCommandData(message: Message) {
@@ -95,15 +95,13 @@ export function getCommandData(message: Message) {
 
 	for (const commandKey of commandKeys) {
 		const command = commands[commandKey];
-		const commandText =
-			command.commandAlias ||
-			`${process.env.COMMAND_PREFIX}${commandKey}`;
+		const commandText = command.commandAlias || `${process.env.COMMAND_PREFIX}${commandKey}`;
 
 		if (text.startsWith(commandText)) {
 			const command = commands[commandKey];
 			return {
 				command,
-				commandKey: commandText
+				commandKey: commandText,
 			};
 		}
 	}
@@ -132,8 +130,7 @@ export function getFormattedCommands() {
 	const commands = getCommands();
 	return Object.entries(commands)
 		.map(([commandKey, command]) => {
-			const commandText =
-				command.alias || `${process.env.COMMAND_PREFIX}${commandKey}`;
+			const commandText = command.alias || `${process.env.COMMAND_PREFIX}${commandKey}`;
 
 			return `*${commandText}*\n ${command.description}`;
 		})

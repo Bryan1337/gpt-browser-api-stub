@@ -53,13 +53,10 @@ export enum SupportedTTSLanguage {
 	TH = "th",
 	TR = "tr",
 	VI = "vi",
-	C = "cy"
+	C = "cy",
 }
 
-export const getTTSAudioFilePath = async (
-	text: string,
-	language: string
-): Promise<string> => {
+export const getTTSAudioFilePath = async (text: string, language: string): Promise<string> => {
 	const gttsInstance = gtts(language);
 
 	return new Promise((resolve, reject) => {

@@ -1,19 +1,16 @@
 import { edit } from "@/util/message";
 import { normalizeProgress } from "@/util/number";
-import {
-	getLocalDraftVideoResponse,
-	getLocalPendingVideoResponse
-} from "@/util/request";
+import { getLocalDraftVideoResponse, getLocalPendingVideoResponse } from "@/util/request";
 import { Message } from "whatsapp-web.js";
 
 function isTaskResponse(
-	response: Record<string, unknown>
+	response: Record<string, unknown>,
 ): response is { task: Record<string, unknown> | null } {
 	return "task" in response;
 }
 
 function isProgressResponse(
-	response: Record<string, unknown>
+	response: Record<string, unknown>,
 ): response is { progress: number | null } {
 	return "progress" in response;
 }

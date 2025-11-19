@@ -3,19 +3,19 @@ import { Message } from "whatsapp-web.js";
 import { logInfo } from "@/util/log";
 import { reactError, reply } from "@/util/message";
 import { CommandHandleData } from "@/util/command";
-import { handleChatQueueItem } from "@/queue_handlers/chat";
-import { handleVideoQueueItem } from "@/queue_handlers/video";
+import { handleChatQueueJob } from "@/queue/job/chat";
+import { handleVideoQueueJob } from "@/queue/job/video";
 
 const chatQueue = new Queue({
 	concurrency: 2,
 	autostart: true,
-	timeout: 60 * 5 * 1000
+	timeout: 60 * 5 * 1000,
 });
 
 const videoQueue = new Queue({
 	concurrency: 2,
 	autostart: true,
-	timeout: 60 * 5 * 1000
+	timeout: 60 * 5 * 1000,
 });
 
 const chatJobMap: WeakMap<Function, Message> = new WeakMap();
@@ -58,31 +58,24 @@ videoQueue.addEventListener("timeout", (error) => {
 videoQueue.start();
 chatQueue.start();
 
-export const addMessageToVideoQueue = async (
-	commandData: CommandHandleData
-) => {
+export async function addMessageToVideoQueue(commandData: CommandHandleData) {
 	const videoJob = async (callback: QueueWorkerCallback | undefined) => {
-		await handleVideoQueueItem(commandData, delayBetweenAttempts);
+		await handleVideoQueueJob(commandData, delayBetweenAttempts);
 		callback?.();
 		videoJobMap.delete(videoJob);
 	};
 
 	videoQueue.push(videoJob);
 	videoJobMap.set(videoJob, commandData.message);
-};
+}
 
-export const addMessageToChatQueue = async (commandData: CommandHandleData) => {
+export async function addMessageToChatQueue(commandData: CommandHandleData) {
 	const chatJob = async (callback: QueueWorkerCallback | undefined) => {
-		await handleChatQueueItem(
-			commandData,
-			1,
-			maxChatAttempts,
-			delayBetweenAttempts
-		);
+		await handleChatQueueJob(commandData, 1, maxChatAttempts, delayBetweenAttempts);
 		callback?.();
 		chatJobMap.delete(chatJob);
 	};
 
 	chatQueue.push(chatJob);
 	chatJobMap.set(chatJob, commandData.message);
-};
+}

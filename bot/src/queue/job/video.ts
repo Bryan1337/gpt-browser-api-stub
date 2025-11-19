@@ -1,22 +1,15 @@
 import { CommandHandleData } from "@/util/command";
 import { saveExternalFile, SORA_AI_VIDEOS_PATH } from "@/util/file";
 import { logError } from "@/util/log";
-import {
-	edit,
-	reactError,
-	reactSuccess,
-	reactVideo,
-	reply,
-	replyWithMedia
-} from "@/util/message";
+import { edit, reactError, reactSuccess, reactVideo, reply, replyWithMedia } from "@/util/message";
 import { getLocalVideoResponse } from "@/util/request";
 import { pause } from "@/util/time";
 import { requestVideo } from "@/util/video";
 import { getMessageMediaFromFilePath } from "@/util/whatsappWeb";
 
-export async function handleVideoQueueItem(
+export async function handleVideoQueueJob(
 	commandData: CommandHandleData,
-	delayBetweenAttempts: number
+	delayBetweenAttempts: number,
 ) {
 	const { text, message } = commandData;
 
@@ -46,10 +39,7 @@ export async function handleVideoQueueItem(
 			const task = await requestVideo(taskId, sentMessage);
 
 			if (task && task.kind === "sora_content_violation") {
-				edit(
-					sentMessage,
-					`Video generation failed: ${task.markdown_reason_str}`
-				);
+				edit(sentMessage, `Video generation failed: ${task.markdown_reason_str}`);
 
 				reactError(message);
 
@@ -72,13 +62,13 @@ export async function handleVideoQueueItem(
 			const localFileUrl = await saveExternalFile(
 				task.downloadable_url,
 				"mp4",
-				SORA_AI_VIDEOS_PATH
+				SORA_AI_VIDEOS_PATH,
 			);
 
 			reactSuccess(message);
 			edit(
 				sentMessage,
-				`Video generated! ${numVideosRemaining} video generations remaining.`
+				`Video generated! ${numVideosRemaining} video generations remaining.`,
 			);
 
 			const media = getMessageMediaFromFilePath(localFileUrl);
