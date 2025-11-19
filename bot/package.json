@@ -5,7 +5,10 @@
 	"main": "index.js",
 	"scripts": {
 		"local": "tsx watch src/index.ts",
-		"test": "cross-env NODE_OPTIONS=--openssl-legacy-provider tsx src/data_handlers/sora/getVideo.ts"
+		"test": "cross-env NODE_OPTIONS=--openssl-legacy-provider tsx src/data_handlers/sora/getVideo.ts",
+		"prepare": "husky",
+		"lint": "eslint .",
+		"type-check": "tsc --noEmit"
 	},
 	"keywords": [
 		"chatgpt",
@@ -37,5 +40,14 @@
 		"dotenv": "^16.0.3",
 		"tsx": "^4.11.0",
 		"typescript": "^5.4.5"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{js,json,md}": [
+			"prettier --write"
+		]
 	}
 }

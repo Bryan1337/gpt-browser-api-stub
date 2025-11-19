@@ -1,6 +1,0 @@
-.*
-.wwebjs_auth/*
-.env
-!.env.example
-*.wav
-node_modules
