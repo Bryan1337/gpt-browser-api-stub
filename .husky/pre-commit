@@ -1,8 +1,7 @@
+cd api
+yarn type-check || exit 1
 
-# echo "🔎 Checking API..."
-# cd api
-# yarn type-check || exit 1
-# cd ..
+cd ..
 
 cd bot
 yarn type-check || exit 1

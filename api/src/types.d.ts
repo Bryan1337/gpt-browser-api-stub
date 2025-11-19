@@ -23,11 +23,7 @@ namespace ChatGPTResponse {
 			required: boolean;
 			dx: string;
 		};
-		proofofwork: {
-			difficulty: string;
-			seed: string;
-			required: boolean;
-		};
+		proofofwork: ProofOfWork;
 	}
 }
 
@@ -37,6 +33,12 @@ interface RateLimitBalance {
 	credit_remaining: number;
 	estimated_num_videos_remaining: number;
 	estimated_num_purchased_videos_remaining: number;
+}
+
+interface ProofOfWork {
+	difficulty: string;
+	seed: string;
+	required: boolean;
 }
 
 interface VideoTask {

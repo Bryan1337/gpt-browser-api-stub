@@ -23,7 +23,6 @@
   "author": "Bryan Overduin",
   "license": "ISC",
   "devDependencies": {
-    "@types/cloudflare-turnstile": "^0.2.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
     "@types/puppeteer": "^7.0.4",
