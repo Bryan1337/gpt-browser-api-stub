@@ -1,4 +1,4 @@
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { saveExternalFile, SORA_AI_VIDEOS_PATH } from "@/util/file";
 import { logError } from "@/util/log";
 import { edit, reactError, reactSuccess, reactVideo, reply, replyWithMedia } from "@/util/message";

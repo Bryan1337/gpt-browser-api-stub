@@ -1,4 +1,4 @@
-import { CommandHandleData, getFormattedCommands } from "@/util/command";
+import { CommandHandleData, getFormattedCommands } from "@/command";
 import { reactSuccess, reply } from "@/util/message";
 
 export const helpCommand = async (data: CommandHandleData) => {

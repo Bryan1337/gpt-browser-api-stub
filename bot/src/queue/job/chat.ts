@@ -5,7 +5,7 @@ import { hasAudioEnabled } from "@/data_handlers/enabled_audio/getAudioData";
 import { getAudioLanguage } from "@/data_handlers/enabled_audio/getAudioLanguage";
 import { removeAudioFile } from "@/data_handlers/enabled_audio/removeAudioFile";
 import { storePrompt } from "@/data_handlers/prompt/storePrompt";
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { logError, logInfo } from "@/util/log";
 import {
 	reactError,

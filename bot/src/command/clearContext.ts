@@ -1,5 +1,5 @@
 import { clearContext } from "@/data_handlers/context/clearContext";
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { reactError, reactSuccess, reply } from "@/util/message";
 
 export const clearContextCommand = async (data: CommandHandleData) => {

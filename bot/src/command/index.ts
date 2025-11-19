@@ -1,17 +1,17 @@
 import { sanitize } from "@/util/string";
 import { Message } from "whatsapp-web.js";
 import { getSupportedLanguagesString } from "@/util/tts";
-import { disableAudioCommand } from "@/commands/disableAudio";
-import { imageCommand } from "@/commands/image";
-import { videoCommand } from "@/commands/video";
-import { enableAudioCommand } from "@/commands/enableAudio";
-import { helpCommand } from "@/commands/help";
-import { clearContextCommand } from "@/commands/clearContext";
-import { getContextCommand } from "@/commands/getContext";
-import { setContextCommand } from "@/commands/setContext";
-import { registerCommand } from "@/commands/register";
+import { disableAudioCommand } from "@/command/disableAudio";
+import { imageCommand } from "@/command/image";
+import { videoCommand } from "@/command/video";
+import { enableAudioCommand } from "@/command/enableAudio";
+import { helpCommand } from "@/command/help";
+import { clearContextCommand } from "@/command/clearContext";
+import { getContextCommand } from "@/command/getContext";
+import { setContextCommand } from "@/command/setContext";
+import { registerCommand } from "@/command/register";
 import { logError } from "@/util/log";
-import { chatCommand } from "@/commands/chat";
+import { chatCommand } from "@/command/chat";
 import { reply } from "@/util/message";
 
 export interface CommandHandleData {

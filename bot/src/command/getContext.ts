@@ -1,5 +1,5 @@
 import { getContext } from "@/data_handlers/context/getContext";
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { reactError, reactSuccess, reply } from "@/util/message";
 
 export const getContextCommand = async (data: CommandHandleData) => {

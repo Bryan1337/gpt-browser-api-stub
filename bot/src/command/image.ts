@@ -1,13 +1,7 @@
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { generateDeepAiImage } from "@/util/deepAi";
 import { logError } from "@/util/log";
-import {
-	reactError,
-	reactImage,
-	reactSuccess,
-	reply,
-	replyWithMedia
-} from "@/util/message";
+import { reactError, reactImage, reactSuccess, reply, replyWithMedia } from "@/util/message";
 import { getMessageMediaFromUrl } from "@/util/whatsappWeb";
 
 export const imageCommand = async (commandData: CommandHandleData) => {

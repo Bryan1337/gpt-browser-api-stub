@@ -1,5 +1,5 @@
 import { enableAudioResponse } from "@/data_handlers/enabled_audio/enableAudioResponse";
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { getSupportedLanguagesString } from "@/util/tts";
 import { reactError, reactSuccess, reply } from "@/util/message";
 
@@ -10,10 +10,7 @@ export const enableAudioCommand = async (data: CommandHandleData) => {
 
 	if (!text) {
 		reactError(message);
-		reply(
-			message,
-			`No language given 🤔. Supported languages are:\n*${languagesString}*`
-		);
+		reply(message, `No language given 🤔. Supported languages are:\n*${languagesString}*`);
 		return;
 	}
 
@@ -23,15 +20,12 @@ export const enableAudioCommand = async (data: CommandHandleData) => {
 		enableAudioResponse(message.id.remote, isoCode);
 
 		reactSuccess(message);
-		reply(
-			message,
-			`Audio responses enabled in language *${isoCode.toUpperCase()}* 👌`
-		);
+		reply(message, `Audio responses enabled in language *${isoCode.toUpperCase()}* 👌`);
 	} else {
 		reactError(message);
 		reply(
 			message,
-			`Language *${isoCode}* is not supported 🚫. Supported languages are:\n*${languagesString}*`
+			`Language *${isoCode}* is not supported 🚫. Supported languages are:\n*${languagesString}*`,
 		);
 	}
 };

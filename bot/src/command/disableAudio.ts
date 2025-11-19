@@ -1,5 +1,5 @@
 import { disableAudioResponse } from "@/data_handlers/enabled_audio/disableAudioResponse";
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { reactError, reactSuccess, reply } from "@/util/message";
 
 export const disableAudioCommand = async (data: CommandHandleData) => {

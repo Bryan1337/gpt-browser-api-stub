@@ -1,4 +1,4 @@
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { reactQueued, reactTyping } from "@/util/message";
 import { addMessageToChatQueue } from "@/queue";
 

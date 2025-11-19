@@ -1,8 +1,8 @@
 import { Message } from "whatsapp-web.js";
-import { answerCommandResponse, getCommandData } from "@/util/command";
 import { logError, logWarning } from "@/util/log";
 import { checkWhitelistStatus } from "@/data_handlers/whitelist/checkWhitelistStatus";
 import { reactBlocked, reply } from "@/util/message";
+import { answerCommandResponse, getCommandData } from "@/command";
 
 export const messageHandler = async (message: Message) => {
 	try {
@@ -16,7 +16,9 @@ export const messageHandler = async (message: Message) => {
 		const allowed = checkWhitelistStatus(message.from);
 		const alwaysAllowed = !!commandData.command.alwaysAllowed;
 
-		if (!allowed && !alwaysAllowed) {
+		if (allowed || alwaysAllowed) {
+			answerCommandResponse(message);
+		} else {
 			logWarning(
 				"Received message from unregistered user:",
 				`(${contact.pushname})`,
@@ -36,11 +38,7 @@ export const messageHandler = async (message: Message) => {
 					`${blockedMessage} Message ${process.env.OWNER_ID} for an access key 😌👌.`,
 				);
 			}
-
-			return;
 		}
-
-		answerCommandResponse(message);
 	} catch (error) {
 		logError(error);
 	}

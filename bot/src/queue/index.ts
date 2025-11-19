@@ -2,9 +2,9 @@ import Queue, { QueueWorkerCallback } from "queue";
 import { Message } from "whatsapp-web.js";
 import { logInfo } from "@/util/log";
 import { reactError, reply } from "@/util/message";
-import { CommandHandleData } from "@/util/command";
 import { handleChatQueueJob } from "@/queue/job/chat";
 import { handleVideoQueueJob } from "@/queue/job/video";
+import { CommandHandleData } from "@/command";
 
 const chatQueue = new Queue({
 	concurrency: 2,

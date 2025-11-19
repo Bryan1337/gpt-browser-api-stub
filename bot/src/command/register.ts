@@ -1,6 +1,6 @@
 import { validateAccessKey } from "@/data_handlers/access_key/validateAccessKey";
 import { addToWhiteList } from "@/data_handlers/whitelist/addToWhitelist";
-import { CommandHandleData } from "@/util/command";
+import { CommandHandleData } from "@/command";
 import { reactError, reactSuccess, reply } from "@/util/message";
 
 export const registerCommand = (data: CommandHandleData) => {
