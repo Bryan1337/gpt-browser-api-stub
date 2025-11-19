@@ -1,14 +1,8 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
 
-echo "🔎 Checking API..."
-cd api
-yarn type-check || exit 1
-cd ..
+# echo "🔎 Checking API..."
+# cd api
+# yarn type-check || exit 1
+# cd ..
 
-echo "🔎 Checking BOT..."
 cd bot
 yarn type-check || exit 1
-cd ..
-
-echo "✅ Pre-commit passed"

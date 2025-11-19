@@ -6,7 +6,7 @@
 	"scripts": {
 		"local": "tsx watch src/index.ts",
 		"test": "cross-env NODE_OPTIONS=--openssl-legacy-provider tsx src/data_handlers/sora/getVideo.ts",
-		"prepare": "husky",
+		"prepare": "husky && husky install",
 		"lint": "eslint .",
 		"type-check": "tsc --noEmit"
 	},
@@ -39,7 +39,8 @@
 		"cross-env": "^7.0.3",
 		"dotenv": "^16.0.3",
 		"tsx": "^4.11.0",
-		"typescript": "^5.4.5"
+		"typescript": "^5.4.5",
+		"husky": "^8.0.0"
 	},
 	"lint-staged": {
 		"*.{ts,tsx}": [

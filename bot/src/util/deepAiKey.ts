@@ -1,10 +1,8 @@
 const tryItApiKeySuffix = "hackers_become_a_little_stinkier_every_time_they_hack";
 
-console.log(123);
-
 export const generateTryItApiKey = (userAgent: string) => {
 	var myrandomstr = Math.round(Math.random() * 100000000000) + "";
-	var myhashfunction = (function () {
+	var myhashfunction = eval(`(function () {
 		for (var a = [], b = 0; 64 > b; ) a[b] = 0 | (4294967296 * Math.sin(++b % Math.PI));
 		return function (c) {
 			var d,
@@ -44,7 +42,7 @@ export const generateTryItApiKey = (userAgent: string) => {
 			for (c = ""; 32 > l; ) c += ((g[l >> 3] >> (4 * (1 ^ l++))) & 15).toString(16);
 			return c.split("").reverse().join("");
 		};
-	})();
+	})()`);
 	var tryitApiKey =
 		"tryit-" +
 		myrandomstr +

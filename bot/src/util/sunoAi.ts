@@ -1,4 +1,4 @@
-import { logError, logInfo } from "@/util/log";
+import { logInfo } from "@/util/log";
 
 export const SUNO_AI_BASE_URL = "https://studio-api.prod.suno.com/api";
 export const SUNO_AI_CLERK_BASE_URL = "https://clerk.suno.com/v1/client";

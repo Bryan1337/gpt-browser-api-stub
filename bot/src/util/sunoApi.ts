@@ -1,12 +1,5 @@
 import { getSessionTokens } from "@/data_handlers/suno_ai/getClientTokens";
-import {
-	getBillingInfo,
-	getClient,
-	getClientSessionTouch,
-	getClientTokens,
-	getGenerateV2,
-	initializeSession,
-} from "./sunoAi";
+import { getClient, getClientSessionTouch, getClientTokens, getGenerateV2 } from "./sunoAi";
 
 const sessionTokens = getSessionTokens();
 
