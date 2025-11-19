@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "local": "tsx watch src/index.ts"
+    "local": "tsx watch src/index.ts",
+    "prepare": "husky && husky install",
+		"lint": "eslint .",
+		"type-check": "tsc --noEmit"
   },
   "dependencies": {
     "chalk": "^5.3.0",
