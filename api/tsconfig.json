@@ -1,38 +1,27 @@
 {
-	"compilerOptions": {
-		"target": "ESNext",
-		"module": "ESNext",
-		"checkJs": true,
-		"esModuleInterop": true,
-		"allowImportingTsExtensions": true,
-		"noEmit": true,
-		"outDir": "./build",
-		"alwaysStrict": true,
-		"noImplicitAny": true,
-		"skipLibCheck": true,
-		"extendedDiagnostics": false,
-		"moduleResolution": "bundler",
-		"downlevelIteration": true,
-		"allowJs": true,
-		"sourceMap": true,
-		"strict": true,
-		"strictNullChecks": true,
-		"noImplicitThis": false,
-		"noUnusedLocals": true,
-		"noUnusedParameters": false,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"declaration": false,
-		"importHelpers": true,
-		"paths": {
-			"@/*": ["./src/*"]
-		}
-	},
-	"include": [
-		"./**/*.js",
-		"./**/*.ts"
-	],
-	"exclude": [
-		"node_modules"
-	]
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "module": "esnext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "sourceMap": true,
+    "useUnknownInCatchVariables": true,
+    "paths": {
+        "@/*": ["./src/*"]
+      }
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

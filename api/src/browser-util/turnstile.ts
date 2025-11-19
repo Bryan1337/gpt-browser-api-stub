@@ -50,18 +50,14 @@ const turnstileUtil = () => {
 				try {
 					globalRegistry.set(
 						9,
-						JSON.parse(
-							parseData(
-								atob(encodedInput),
-								"" + globalRegistry.get(16)
-							)
-						)
+						JSON.parse(parseData(atob(encodedInput), "" + globalRegistry.get(16))),
 					);
 
 					while (globalRegistry.get(9).length > 0) {
-						let [callbackKey, ...args] = globalRegistry
-							.get(9)
-							.shift() as [number, ...unknown[]];
+						let [callbackKey, ...args] = globalRegistry.get(9).shift() as [
+							number,
+							...unknown[],
+						];
 						globalRegistry.get(callbackKey)(...args);
 						processedCount++;
 					}
@@ -81,136 +77,82 @@ const turnstileUtil = () => {
 					firstIndex,
 					parseData(
 						"" + globalRegistry.get(firstIndex),
-						"" + globalRegistry.get(secondIndex)
-					)
-				)
+						"" + globalRegistry.get(secondIndex),
+					),
+				),
 			);
 			globalRegistry.set(2, (index: number, value: string) =>
-				globalRegistry.set(index, value)
+				globalRegistry.set(index, value),
 			);
 			globalRegistry.set(5, (firstIndex: number, secondIndex: number) => {
 				const entry = globalRegistry.get(firstIndex);
 				Array.isArray(entry)
 					? entry.push(globalRegistry.get(secondIndex))
-					: globalRegistry.set(
-							firstIndex,
-							entry + globalRegistry.get(secondIndex)
-					  );
+					: globalRegistry.set(firstIndex, entry + globalRegistry.get(secondIndex));
 			});
-			globalRegistry.set(
-				6,
-				(firstIndex: number, secondIndex: number, lastIndex: number) =>
-					globalRegistry.set(
-						firstIndex,
-						globalRegistry.get(secondIndex)[
-							globalRegistry.get(lastIndex)
-						]
-					)
+			globalRegistry.set(6, (firstIndex: number, secondIndex: number, lastIndex: number) =>
+				globalRegistry.set(
+					firstIndex,
+					globalRegistry.get(secondIndex)[globalRegistry.get(lastIndex)],
+				),
 			);
 			globalRegistry.set(7, function (index: number) {
-				for (
-					var t = arguments.length,
-						n = Array(t > 1 ? t - 1 : 0),
-						i = 1;
-					i < t;
-					i++
-				)
+				for (var t = arguments.length, n = Array(t > 1 ? t - 1 : 0), i = 1; i < t; i++)
 					n[i - 1] = arguments[i];
-				return globalRegistry.get(index)(
-					...n.map((_index) => globalRegistry.get(_index))
+				return globalRegistry.get(index)(...n.map((_index) => globalRegistry.get(_index)));
+			});
+			globalRegistry.set(17, function (firstIndex: number, secondIndex: number) {
+				for (var n = arguments.length, i = Array(n > 2 ? n - 2 : 0), o = 2; o < n; o++)
+					i[o - 2] = arguments[o];
+				return globalRegistry.set(
+					firstIndex,
+					globalRegistry.get(secondIndex)(
+						...i.map((_index) => globalRegistry.get(_index)),
+					),
 				);
 			});
-			globalRegistry.set(
-				17,
-				function (firstIndex: number, secondIndex: number) {
-					for (
-						var n = arguments.length,
-							i = Array(n > 2 ? n - 2 : 0),
-							o = 2;
-						o < n;
-						o++
-					)
+			globalRegistry.set(13, function (firstIndex: number, secondIndex: number) {
+				try {
+					for (var n = arguments.length, i = Array(n > 2 ? n - 2 : 0), o = 2; o < n; o++)
 						i[o - 2] = arguments[o];
-					return globalRegistry.set(
-						firstIndex,
-						globalRegistry.get(secondIndex)(
-							...i.map((_index) => globalRegistry.get(_index))
-						)
-					);
+					globalRegistry.get(secondIndex)(...i);
+				} catch (error) {
+					globalRegistry.set(firstIndex, "" + error);
 				}
-			);
-			globalRegistry.set(
-				13,
-				function (firstIndex: number, secondIndex: number) {
-					try {
-						for (
-							var n = arguments.length,
-								i = Array(n > 2 ? n - 2 : 0),
-								o = 2;
-							o < n;
-							o++
-						)
-							i[o - 2] = arguments[o];
-						globalRegistry.get(secondIndex)(...i);
-					} catch (error) {
-						globalRegistry.set(firstIndex, "" + error);
-					}
-				}
-			);
+			});
 			globalRegistry.set(8, (firstIndex: number, secondIndex: number) =>
-				globalRegistry.set(firstIndex, globalRegistry.get(secondIndex))
+				globalRegistry.set(firstIndex, globalRegistry.get(secondIndex)),
 			);
 			globalRegistry.set(10, window);
 			globalRegistry.set(11, (firstIndex: number, secondIndex: number) =>
 				globalRegistry.set(
 					firstIndex,
 					(Array.from(document.scripts || [])
-						.map((e) =>
-							e?.src?.match(globalRegistry.get(secondIndex))
-						)
-						.filter((e) => e?.length)[0] ?? [])[0] ?? null
-				)
+						.map((e) => e?.src?.match(globalRegistry.get(secondIndex)))
+						.filter((e) => e?.length)[0] ?? [])[0] ?? null,
+				),
 			);
-			globalRegistry.set(12, (index: number) =>
-				globalRegistry.set(index, globalRegistry)
-			);
+			globalRegistry.set(12, (index: number) => globalRegistry.set(index, globalRegistry));
 			globalRegistry.set(14, (firstIndex: number, secondIndex: number) =>
-				globalRegistry.set(
-					firstIndex,
-					JSON.parse("" + globalRegistry.get(secondIndex))
-				)
+				globalRegistry.set(firstIndex, JSON.parse("" + globalRegistry.get(secondIndex))),
 			);
 			globalRegistry.set(15, (firstIndex: number, secondIndex: number) =>
-				globalRegistry.set(
-					firstIndex,
-					JSON.stringify(globalRegistry.get(secondIndex))
-				)
+				globalRegistry.set(firstIndex, JSON.stringify(globalRegistry.get(secondIndex))),
 			);
 			globalRegistry.set(18, (index: number) =>
-				globalRegistry.set(index, atob("" + globalRegistry.get(index)))
+				globalRegistry.set(index, atob("" + globalRegistry.get(index))),
 			);
 			globalRegistry.set(19, (index: number) =>
-				globalRegistry.set(index, btoa("" + globalRegistry.get(index)))
+				globalRegistry.set(index, btoa("" + globalRegistry.get(index))),
 			);
 			globalRegistry.set(
 				20,
-				function (
-					firstIndex: number,
-					secondIndex: number,
-					lastIndex: number
-				) {
-					for (
-						var i = arguments.length,
-							o = Array(i > 3 ? i - 3 : 0),
-							a = 3;
-						a < i;
-						a++
-					)
+				function (firstIndex: number, secondIndex: number, lastIndex: number) {
+					for (var i = arguments.length, o = Array(i > 3 ? i - 3 : 0), a = 3; a < i; a++)
 						o[a - 3] = arguments[a];
-					globalRegistry.get(firstIndex) ===
-						globalRegistry.get(secondIndex) &&
+					globalRegistry.get(firstIndex) === globalRegistry.get(secondIndex) &&
 						globalRegistry.get(lastIndex)(...o);
-				}
+				},
 			);
 			globalRegistry.set(
 				21,
@@ -218,51 +160,31 @@ const turnstileUtil = () => {
 					firstIndex: number,
 					secondIndex: number,
 					thirdIndex: number,
-					fourthIndex: number
+					fourthIndex: number,
 				) {
-					for (
-						var o = arguments.length,
-							a = Array(o > 4 ? o - 4 : 0),
-							s = 4;
-						s < o;
-						s++
-					)
+					for (var o = arguments.length, a = Array(o > 4 ? o - 4 : 0), s = 4; s < o; s++)
 						a[s - 4] = arguments[s];
 					return Math.abs(
-						globalRegistry.get(firstIndex) -
-							globalRegistry.get(secondIndex)
+						globalRegistry.get(firstIndex) - globalRegistry.get(secondIndex),
 					) > globalRegistry.get(thirdIndex)
 						? globalRegistry.get(fourthIndex)(...a)
 						: null;
-				}
+				},
 			);
-			globalRegistry.set(
-				23,
-				function (firstIndex: number, secondIndex: number) {
-					for (
-						var n = arguments.length,
-							i = Array(n > 2 ? n - 2 : 0),
-							o = 2;
-						o < n;
-						o++
-					)
-						i[o - 2] = arguments[o];
-					return void 0 !== globalRegistry.get(firstIndex)
-						? globalRegistry.get(secondIndex)(...i)
-						: null;
-				}
-			);
-			globalRegistry.set(
-				24,
-				(firstIndex: number, secondIndex: number, thirdIndex: number) =>
-					globalRegistry.set(
-						firstIndex,
-						globalRegistry
-							.get(secondIndex)
-							[globalRegistry.get(thirdIndex)].bind(
-								globalRegistry.get(secondIndex)
-							)
-					)
+			globalRegistry.set(23, function (firstIndex: number, secondIndex: number) {
+				for (var n = arguments.length, i = Array(n > 2 ? n - 2 : 0), o = 2; o < n; o++)
+					i[o - 2] = arguments[o];
+				return void 0 !== globalRegistry.get(firstIndex)
+					? globalRegistry.get(secondIndex)(...i)
+					: null;
+			});
+			globalRegistry.set(24, (firstIndex: number, secondIndex: number, thirdIndex: number) =>
+				globalRegistry.set(
+					firstIndex,
+					globalRegistry
+						.get(secondIndex)
+						[globalRegistry.get(thirdIndex)].bind(globalRegistry.get(secondIndex)),
+				),
 			);
 			globalRegistry.set(22, () => {});
 			globalRegistry.set(25, () => {});
@@ -272,9 +194,7 @@ const turnstileUtil = () => {
 		function parseData(e: string, t: string) {
 			let n = "";
 			for (let r = 0; r < e.length; r++)
-				n += String.fromCharCode(
-					e.charCodeAt(r) ^ t.charCodeAt(r % t.length)
-				);
+				n += String.fromCharCode(e.charCodeAt(r) ^ t.charCodeAt(r % t.length));
 			return n;
 		}
 
@@ -302,7 +222,7 @@ const turnstileUtil = () => {
 			this.message = message;
 		}
 
-		toJSON(): object {
+		override toJSON(): object {
 			return {
 				"Turnstile-Internal-Error": this.message,
 			};
@@ -317,7 +237,7 @@ const turnstileUtil = () => {
 			this.errorCode = errorCode;
 		}
 
-		toJSON(): object {
+		override toJSON(): object {
 			return {
 				"Turnstile-Client-Error": this.errorCode,
 			};
@@ -329,30 +249,24 @@ const turnstileUtil = () => {
 	class TurnstileUtil {
 		private app = "0x4AAAAAAASbHVR44GU82lOI";
 		private status = TurnstileStatus.Idle;
-		private turnstileInstancePromise: Promise<
-			Turnstile | Serializable
-		> | null = null;
+		private turnstileInstancePromise: Promise<Turnstile | Serializable> | null = null;
 		private enforcementTokenPromise: Promise<unknown> | null = null;
-		private onCompleted = void 0;
-		private onError = void 0;
+		private onCompleted: ((result: Serializable | null) => void) | null = null;
+		private onError: ((result: Serializable | null) => void) | null = null;
 
 		private setStatus(newStatus: TurnstileStatus) {
 			this.status = newStatus;
 		}
 
-		private setOnCompleted = function (
-			callback: (result: Serializable | null) => void
-		) {
+		private setOnCompleted = (callback: (result: Serializable | null) => void) => {
 			this.onCompleted = callback;
 		};
 
-		private setOnError = function (
-			callback: (args: unknown) => Promise<void>
-		) {
+		private setOnError = (callback: (args: unknown) => Promise<void>) => {
 			this.onError = callback;
 		};
 
-		private onExpired = function () {
+		private onExpired = () => {
 			this.enforcementTokenPromise = null;
 		};
 
@@ -363,18 +277,12 @@ const turnstileUtil = () => {
 
 			if (this.app !== data.persona) {
 				this.app = data.persona;
-				this.turnstileInstancePromise =
-					this._getTurnstileInstancePromise();
+				this.turnstileInstancePromise = this._getTurnstileInstancePromise();
 				return this.turnstileInstancePromise;
 			}
-			return new TurnstileInternalError(
-				"Turnstile instance not initialized."
-			);
+			return new TurnstileInternalError("Turnstile instance not initialized.");
 		}
-		async getEnforcementToken(
-			data: TurnstileData,
-			requirementsToken: string
-		) {
+		async getEnforcementToken(data: TurnstileData, requirementsToken: string) {
 			registry.initializeRegistry(requirementsToken);
 			if (data.turnstile.dx) {
 				return registry.processInput(data.turnstile.dx);
@@ -389,18 +297,14 @@ const turnstileUtil = () => {
 				if (this.enforcementTokenPromise !== null) {
 					return this.enforcementTokenPromise;
 				} else {
-					this.enforcementTokenPromise =
-						this._getEnforcementToken(data);
+					this.enforcementTokenPromise = this._getEnforcementToken(data);
 					return this.enforcementTokenPromise;
 				}
 			}
 			return null;
 		}
 
-		async _getEnforcementToken(
-			data: TurnstileData,
-			retryOnError?: boolean
-		) {
+		async _getEnforcementToken(data: TurnstileData, retryOnError?: boolean) {
 			const instance = await this._getOrCreateInstance(data);
 
 			if (instance instanceof Serializable || instance === null) {
@@ -417,10 +321,7 @@ const turnstileUtil = () => {
 						resolve(new TurnstileClientError(error));
 					} else {
 						try {
-							let retryResult = await this._getEnforcementToken(
-								data,
-								true
-							);
+							let retryResult = await this._getEnforcementToken(data, true);
 							resolve(retryResult);
 						} catch (retryError) {
 							reject(retryError);
@@ -462,28 +363,20 @@ const turnstileUtil = () => {
 							this.setStatus(TurnstileStatus.Error);
 							if (newInstance) {
 								console.log("turnstile_instance_missing", {
-									app_release:
-										"1345fbf754073222e84579c5a9f2b6396c475b12",
+									app_release: "1345fbf754073222e84579c5a9f2b6396c475b12",
 									app: this.app.toString(),
 								});
-								resolve(
-									new TurnstileInternalError(
-										"Turnstile instance missing"
-									)
-								);
+								resolve(new TurnstileInternalError("Turnstile instance missing"));
 								return;
 							}
 
-							this._getTurnstileInstancePromise(true).then(
-								resolve,
-								reject
-							);
+							this._getTurnstileInstancePromise(true).then(resolve, reject);
 						}
 
 						turnstileCallback.render(`#${turnstileContainerId}`, {
-							sitekey: "0x4AAAAAAASbHVR44GU82lOI",
-							execution: "execute",
-							callback: this.onCompleted,
+							"sitekey": "0x4AAAAAAASbHVR44GU82lOI",
+							"execution": "execute",
+							"callback": this.onCompleted,
 							"error-callback": this.onError,
 							"expired-callback": this.onExpired,
 						});
@@ -509,16 +402,9 @@ const turnstileUtil = () => {
 				turnstileScriptTag.onerror = () => {
 					this.setStatus(TurnstileStatus.Error);
 					if (!newInstance) {
-						resolve(
-							new TurnstileInternalError(
-								"Turnstile script failed to load"
-							)
-						);
+						resolve(new TurnstileInternalError("Turnstile script failed to load"));
 					} else {
-						this._getTurnstileInstancePromise(true).then(
-							resolve,
-							reject
-						);
+						this._getTurnstileInstancePromise(true).then(resolve, reject);
 					}
 				};
 				document.body.appendChild(turnstileScriptTag);
