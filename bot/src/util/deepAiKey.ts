@@ -1,5 +1,7 @@
 const tryItApiKeySuffix = "hackers_become_a_little_stinkier_every_time_they_hack";
 
+console.log(123);
+
 export const generateTryItApiKey = (userAgent: string) => {
 	var myrandomstr = Math.round(Math.random() * 100000000000) + "";
 	var myhashfunction = (function () {
