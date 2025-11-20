@@ -20,6 +20,7 @@ import { RequestUtil } from "@/browser-util/request";
 import { VideoRequestUtil } from "@/browser-util/videoRequest";
 import { HashWasmUtil } from "@/browser-util/hashWasm";
 import { ConversationRequestUtil } from "@/browser-util/conversationRequest";
+import { videoCreditsRequest } from "@/request/get/videoCredits";
 
 export interface GPTBoyUtils {
 	time: TimeUtil;
@@ -60,9 +61,7 @@ declare global {
 
 const server = getServer();
 const hasVPN = !!process.env.VPN_EXTENSION_PATH;
-const vpnArgs = hasVPN
-	? [`--load-extension=${process.env.VPN_EXTENSION_PATH}`]
-	: [];
+const vpnArgs = hasVPN ? [`--load-extension=${process.env.VPN_EXTENSION_PATH}`] : [];
 
 puppeteer.use(StealthPlugin());
 
@@ -93,12 +92,14 @@ server.use(async (request, _, next) => {
 enum Route {
 	CONVERSATIONS = "/conversations",
 	VIDEO = "/video",
+	VIDEO_CREDITS = "/video-credits",
 	PENDING = "/pending",
 	DRAFT = "/draft",
 }
 
 server.post(Route.CONVERSATIONS, conversationsRequest);
 server.post(Route.VIDEO, videoRequest);
+server.get(Route.VIDEO_CREDITS, videoCreditsRequest);
 
 server.get(Route.PENDING, pendingVideoRequest);
 server.get(Route.DRAFT, draftVideoRequest);

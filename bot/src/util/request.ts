@@ -46,6 +46,18 @@ export const getLocalVideoResponse = async (prompt: string) => {
 	return await response.json();
 };
 
+export const getLocalVideoCreditsResponse = async () => {
+	const response = await fetch(`${process.env.API_URL}/video-credits`, {
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+			// 'Authorization': `Bearer ${someServerToken}`,
+		},
+	});
+
+	return await response.json();
+};
+
 export const getLocalPendingVideoResponse = async (taskId: string) => {
 	const response = await fetch(`${process.env.API_URL}/pending?taskId=${taskId}`, {
 		method: "GET",

@@ -1,8 +1,4 @@
-export const getVideoResponse = async ({
-	body,
-}: {
-	body: { prompt: string };
-}) => {
+export const getVideoResponse = async ({ body }: { body: { prompt: string } }) => {
 	const { videoRequest, time } = window.gptBoyUtils;
 
 	try {
@@ -15,13 +11,11 @@ export const getVideoResponse = async ({
 		const usageResponse = await requestUtil.videoUsageRequest();
 
 		const numVideosRemaining =
-			usageResponse.rate_limit_and_credit_balance
-				.estimated_num_videos_remaining ?? 0;
+			usageResponse.rate_limit_and_credit_balance.estimated_num_videos_remaining ?? 0;
 
 		if (usageResponse.rate_limit_and_credit_balance.rate_limit_reached) {
 			const resetInSeconds =
-				usageResponse.rate_limit_and_credit_balance
-					.access_resets_in_seconds ?? 0;
+				usageResponse.rate_limit_and_credit_balance.access_resets_in_seconds ?? 0;
 
 			const timeRemaining = formatSeconds(resetInSeconds);
 
@@ -42,11 +36,7 @@ export const getVideoResponse = async ({
 	}
 };
 
-export const getPendingVideoResponse = async ({
-	body,
-}: {
-	body: { taskId: string };
-}) => {
+export const getPendingVideoResponse = async ({ body }: { body: { taskId: string } }) => {
 	const { taskId } = body;
 
 	const { videoRequest } = window.gptBoyUtils;
@@ -62,9 +52,7 @@ export const getPendingVideoResponse = async ({
 		};
 	}
 
-	const pendingTask = (pendingResponse ?? []).find(
-		(task: any) => task.id === taskId
-	);
+	const pendingTask = (pendingResponse ?? []).find((task: any) => task.id === taskId);
 
 	if (!pendingTask) {
 		return {
@@ -77,11 +65,20 @@ export const getPendingVideoResponse = async ({
 	};
 };
 
-export const getVideoDraftResponse = async ({
-	body,
-}: {
-	body: { taskId: string };
-}) => {
+export const getVideoCreditsResponse = async () => {
+	try {
+		const { videoRequest } = window.gptBoyUtils;
+
+		const requestUtil = await videoRequest();
+		const usageResponse = await requestUtil.videoUsageRequest();
+
+		return usageResponse;
+	} catch (error) {
+		return { error };
+	}
+};
+
+export const getVideoDraftResponse = async ({ body }: { body: { taskId: string } }) => {
 	try {
 		const { taskId } = body;
 

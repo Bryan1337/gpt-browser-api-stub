@@ -13,6 +13,7 @@ import { registerCommand } from "@/command/register";
 import { logError } from "@/util/log";
 import { chatCommand } from "@/command/chat";
 import { reply } from "@/util/message";
+import { videoCreditsCommand } from "@/command/videoCredits";
 
 export interface CommandHandleData {
 	message: Message;
@@ -29,19 +30,7 @@ type Command = {
 	alwaysAllowed?: boolean;
 };
 
-type CommandKey =
-	| "chat"
-	| "help"
-	| "register"
-	| "context"
-	| "getContext"
-	| "clearContext"
-	| "enableAudio"
-	| "disableAudio"
-	| "image"
-	| "video";
-
-export const getCommands = (): Record<CommandKey, Command> => ({
+export const getCommands = (): Record<string, Command> => ({
 	chat: {
 		alias: "@me",
 		commandAlias: `@${process.env.USER_WHATSAPP_ID}`,
@@ -82,6 +71,10 @@ export const getCommands = (): Record<CommandKey, Command> => ({
 		handle: imageCommand,
 		description: `Sends an image. Usage:\n \`\`\`!image <image prompt>\`\`\``,
 	},
+	videoCredits: {
+		handle: videoCreditsCommand,
+		description: `Checks the amount of credits left for the !video command. Usage:\n \`\`\`!videoCredits\`\`\``,
+	},
 	video: {
 		handle: videoCommand,
 		description: `Sends a video. Usage:\n \`\`\`!video <video prompt>\`\`\``,
@@ -90,7 +83,7 @@ export const getCommands = (): Record<CommandKey, Command> => ({
 
 export function getCommandData(message: Message) {
 	const commands = getCommands();
-	const commandKeys = Object.keys(commands) as CommandKey[];
+	const commandKeys = Object.keys(commands);
 	const text = sanitize(message.body);
 
 	for (const commandKey of commandKeys) {
