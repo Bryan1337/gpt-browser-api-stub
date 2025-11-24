@@ -114,7 +114,7 @@ export async function answerCommandResponse(message: Message) {
 	try {
 		command.handle({ text, message });
 	} catch (error) {
-		logError(error as string);
+		logError(error);
 		reply(message, `Something went wrong (${error})`);
 	}
 }

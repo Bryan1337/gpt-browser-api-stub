@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import { v4 as uuidv4 } from "uuid";
 
 export const saveExternalFile = async (url: string, extension: string, path: string) => {
@@ -22,6 +23,12 @@ export const saveExternalFile = async (url: string, extension: string, path: str
 };
 
 export const createFileIfNotExists = (filePath: string, baseData = []) => {
+	const directory = path.dirname(filePath);
+
+	if (!fs.existsSync(directory)) {
+		fs.mkdirSync(directory, { recursive: true });
+	}
+
 	if (!fs.existsSync(filePath)) {
 		fs.writeFileSync(filePath, JSON.stringify(baseData, null, 2));
 	}
@@ -83,4 +90,8 @@ export const DEEP_AI_IMAGES_PATH = createFolderIfNotExists(
 
 export const SORA_AI_VIDEOS_PATH = createFolderIfNotExists(
 	`${process.cwd()}/output/.sora_ai_videos`,
+);
+
+export const SORA_AI_BLOCKLIST_PATH = createFileIfNotExists(
+	`${process.cwd()}/output/.sora_ai_blocklist/data.json`,
 );

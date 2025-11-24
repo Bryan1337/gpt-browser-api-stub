@@ -93,8 +93,6 @@ export const generateDeepAiImage = async (text: string) => {
 
 	const json = await response.json();
 
-	console.log(json);
-
 	if (json.err) {
 		throw new Error(json.err);
 	}
