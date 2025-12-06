@@ -25,7 +25,7 @@
 	},
 	"lint-staged": {
 		"*.{ts,tsx}": [
-			"eslint --fix",
+			"eslint --fix 'bot/src/**/*.{ts,tsx}' 'api/src/**/*.{ts,tsx}'",
 			"prettier --write"
 		],
 		"*.{js,json,md}": [

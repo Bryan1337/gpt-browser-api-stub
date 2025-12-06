@@ -10,12 +10,12 @@ const sentinelUtil = () => {
 	};
 
 	const encodeString = (
-		input: Record<string, string | number> | Array<string | number>
+		input: Record<string, string | number> | Array<string | number>,
 	): string => {
 		return btoa(unescape(encodeURIComponent(JSON.stringify(input))));
 	};
 
-	const getAnswer = async (proofofwork: ProofOfWork) => {
+	const getAnswer = async (proofofwork: API.ProofOfWork) => {
 		if (!proofofwork.required) {
 			return "";
 		}
@@ -41,10 +41,7 @@ const sentinelUtil = () => {
 			config[configTimingIndex] = Math.round(performance.now() - timing);
 			const encoded = encodeString(config);
 			const str = seed + encoded;
-			const hashedStr = await window.gptBoyUtils.hashWasm.sha3(
-				str,
-				sha3Bits
-			);
+			const hashedStr = await window.gptBoyUtils.hashWasm.sha3(str, sha3Bits);
 			if (hashedStr.substring(0, difficultyLength) <= difficulty) {
 				return encoded;
 			}
@@ -61,15 +58,13 @@ const sentinelUtil = () => {
 		getRandomElement(
 			Array.from(document.scripts)
 				.filter((e) => Boolean(e.src))
-				.map((e) => e.src)
+				.map((e) => e.src),
 		),
 		(() => {
 			const dplScriptMatches = Array.from(document.scripts)
 				.map((scriptTag) => `${scriptTag.src}`.match("dpl.*"))
 				.filter(Boolean);
-			const [dplScriptMatch] = dplScriptMatches.length
-				? dplScriptMatches
-				: [[""]];
+			const [dplScriptMatch] = dplScriptMatches.length ? dplScriptMatches : [[""]];
 			const [dplTag] = dplScriptMatch || [""];
 			return dplTag;
 		})(),
@@ -87,7 +82,7 @@ const sentinelUtil = () => {
 		getRandomElement(Object.keys(window)),
 	];
 
-	const getEnforcementToken = async (proofofwork: ProofOfWork) => {
+	const getEnforcementToken = async (proofofwork: API.ProofOfWork) => {
 		const { difficulty } = proofofwork;
 		console.time(`Enforcement token (difficulty: ${difficulty})`);
 		const enforcementToken = await getAnswer(proofofwork);

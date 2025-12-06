@@ -1,23 +1,22 @@
 {
-  "compilerOptions": {
-    "moduleResolution": "bundler",
-    "target": "ES2022",
-    "module": "esnext",
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "noImplicitOverride": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": ["node"],
-    "sourceMap": true,
-    "useUnknownInCatchVariables": true,
-
-	"typeRoots": ["./node_modules/@types", "./shared/types"]
-},
-  	"include": ["shared/types/**/*"]
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"target": "ES2022",
+		"module": "esnext",
+		"resolveJsonModule": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"strict": true,
+		"noImplicitOverride": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": false,
+		"noFallthroughCasesInSwitch": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"types": ["node"],
+		"sourceMap": true,
+		"useUnknownInCatchVariables": true,
+		"typeRoots": ["./node_modules/@types", "./shared/types"]
+	},
+	"include": ["shared/types/**/*", "bot/src", "api/src"]
 }

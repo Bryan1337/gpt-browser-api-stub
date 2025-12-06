@@ -41,7 +41,7 @@ const videoRequestUtil = async () => {
 		};
 	}
 
-	async function videoUsageRequest(): Promise<SoraResponse.Usage> {
+	async function videoUsageRequest(): Promise<API.SoraResponse.Usage> {
 		return get(Url.USAGE, {
 			headers: {
 				"Authorization": `Bearer ${accessToken}`,
@@ -50,7 +50,7 @@ const videoRequestUtil = async () => {
 		});
 	}
 
-	async function videoDraftRequest(): Promise<SoraResponse.Drafts> {
+	async function videoDraftRequest(): Promise<API.SoraResponse.Drafts> {
 		return get(Url.VIDEO_DRAFTS, {
 			headers: {
 				"Authorization": `Bearer ${accessToken}`,
@@ -59,7 +59,7 @@ const videoRequestUtil = async () => {
 		});
 	}
 
-	async function videoPendingRequest(): Promise<SoraResponse.Pending> {
+	async function videoPendingRequest(): Promise<API.SoraResponse.Pending> {
 		return get(Url.PENDING, {
 			headers: {
 				"Authorization": `Bearer ${accessToken}`,
@@ -68,7 +68,7 @@ const videoRequestUtil = async () => {
 		});
 	}
 
-	async function videoRequest(prompt: string): Promise<SoraResponse.Video> {
+	async function videoRequest(prompt: string): Promise<API.SoraResponse.Video> {
 		const body = getVideoBodyParams(prompt);
 		return post(Url.CREATE, {
 			headers: {
