@@ -5,7 +5,6 @@
 	"main": "src/index.ts",
 	"scripts": {
 		"local": "tsx watch src/index.ts",
-		"prepare": "husky && husky install",
 		"lint": "eslint .",
 		"type-check": "tsc --noEmit"
 	},
@@ -33,5 +32,14 @@
 		"tsx": "^4.10.5",
 		"typescript": "^5.4.5"
 	},
-	"type": "module"
+	"type": "module",
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{js,json,md}": [
+			"prettier --write"
+		]
+	}
 }

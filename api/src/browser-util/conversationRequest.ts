@@ -11,8 +11,7 @@ interface ChatCompletionData {
 }
 
 const conversationRequestUtil = async () => {
-	const { get, post, request, getAccessToken } =
-		await window.gptBoyUtils.request();
+	const { get, post, retry, request, getAccessToken } = await window.gptBoyUtils.request();
 
 	const BASE_URL = "https://chatgpt.com";
 
@@ -23,16 +22,19 @@ const conversationRequestUtil = async () => {
 		CHAT_COMPLETION = `${BASE_URL}/backend-api/f/conversation`,
 	}
 
-	const accessToken = await getAccessToken(Url.SESSION);
+	const maxAccessTokenAttempts = 5;
+	const accessToken = await retry(
+		async () => await getAccessToken(Url.SESSION),
+		maxAccessTokenAttempts,
+	);
 
 	function getChatCompletionHeaders(data: ChatCompletionData) {
 		return {
-			accept: "text/event-stream",
+			"accept": "text/event-stream",
 			"content-type": "application/json",
 			"oai-device-id": "049fa3f2-7680-46b6-9a91-f29b6731bc37",
 			"oai-language": "en-US",
-			"openai-sentinel-chat-requirements-token":
-				data.requirementsResponseToken,
+			"openai-sentinel-chat-requirements-token": data.requirementsResponseToken,
 			"openai-sentinel-turnstile-token": data.turnstileToken,
 			"openai-sentinel-proof-token": data.enforcementToken,
 			"oai-echo-logs": "0,50179,1,50182,0,50505,1,52811",
@@ -71,11 +73,11 @@ const conversationRequestUtil = async () => {
 	}
 
 	async function chatRequirements(
-		chatRequirementsRequestToken: string
-	): Promise<ChatGPTResponse.ChatRequirements> {
+		chatRequirementsRequestToken: string,
+	): Promise<API.ChatGPTResponse.ChatRequirements> {
 		return post(Url.CHAT_REQUIREMENTS, {
 			headers: {
-				Authorization: `Bearer ${accessToken}`,
+				"Authorization": `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
 			},
 			body: { p: chatRequirementsRequestToken },
@@ -83,11 +85,11 @@ const conversationRequestUtil = async () => {
 	}
 
 	async function chatConversationId(
-		conversationId: string
-	): Promise<ChatGPTResponse.ChatConversationId> {
+		conversationId: string,
+	): Promise<API.ChatGPTResponse.ChatConversationId> {
 		return get(`${Url.CONVERSATION}/${conversationId}`, {
 			headers: {
-				Authorization: `Bearer ${accessToken}`,
+				"Authorization": `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
 			},
 		});
@@ -100,9 +102,7 @@ const conversationRequestUtil = async () => {
 				Authorization: `Bearer ${accessToken}`,
 				...getChatCompletionHeaders(chatCompletionData),
 			},
-			body: JSON.stringify(
-				getChatCompletionBodyParams(chatCompletionData)
-			),
+			body: JSON.stringify(getChatCompletionBodyParams(chatCompletionData)),
 		});
 	}
 

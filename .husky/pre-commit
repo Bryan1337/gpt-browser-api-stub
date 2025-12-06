@@ -1,7 +1,1 @@
-cd api
-yarn type-check || exit 1
-
-cd ..
-
-cd bot
-yarn type-check || exit 1
+lint-staged

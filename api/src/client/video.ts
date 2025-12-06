@@ -1,14 +1,19 @@
 export const getVideoResponse = async ({ body }: { body: { prompt: string } }) => {
-	const { videoRequest, time } = window.gptBoyUtils;
+	const { videoRequest, request, time } = window.gptBoyUtils;
 
 	try {
 		const { prompt } = body;
 
 		const { formatSeconds } = time();
 
-		const requestUtil = await videoRequest();
+		const requestUtil = await request();
+		const videoRequestUtil = await videoRequest();
 
-		const usageResponse = await requestUtil.videoUsageRequest();
+		const maxUsageResponseAttempts = 5;
+		const usageResponse = await requestUtil.retry(
+			videoRequestUtil.videoUsageRequest,
+			maxUsageResponseAttempts,
+		);
 
 		const numVideosRemaining =
 			usageResponse.rate_limit_and_credit_balance.estimated_num_videos_remaining ?? 0;
@@ -24,7 +29,7 @@ export const getVideoResponse = async ({ body }: { body: { prompt: string } }) =
 			};
 		}
 
-		const videoResponse = await requestUtil.videoRequest(prompt);
+		const videoResponse = await videoRequestUtil.videoRequest(prompt);
 
 		return {
 			taskId: videoResponse.id,
@@ -69,8 +74,8 @@ export const getVideoCreditsResponse = async () => {
 	try {
 		const { videoRequest } = window.gptBoyUtils;
 
-		const requestUtil = await videoRequest();
-		const usageResponse = await requestUtil.videoUsageRequest();
+		const videoRequestUtil = await videoRequest();
+		const usageResponse = await videoRequestUtil.videoUsageRequest();
 
 		return usageResponse;
 	} catch (error) {

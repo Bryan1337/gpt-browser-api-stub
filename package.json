@@ -1,0 +1,35 @@
+{
+	"name": "chatgpt-boy",
+	"version": "1.0.0",
+	"scripts": {
+		"prepare": "husky install",
+		"lint": "eslint 'bot/src/**/*.{ts,tsx}' 'api/src/**/*.{ts,tsx}'",
+		"format": "prettier --write 'bot/src/**/*.{ts,tsx,js,json}' 'api/src/**/*.{ts,tsx,js,json}'",
+		"build": "tsc --build bot/tsconfig.json api/tsconfig.json",
+		"type-check": "tsc --noEmit -p bot/tsconfig.json && tsc --noEmit -p api/tsconfig.json",
+		"start:bot": "yarn --cwd bot local",
+		"start:api": "yarn --cwd api local"
+	},
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^6.0.0",
+		"@typescript-eslint/parser": "^6.0.0",
+		"eslint": "^8.0.0",
+		"eslint-config-prettier": "^9.0.0",
+		"eslint-plugin-prettier": "^5.0.0",
+		"husky": "^8.0.0",
+		"lint-staged": "^14.0.0",
+		"prettier": "^3.0.0",
+		"typescript": "^5.2.0",
+		"@types/node": "^24.10.1",
+		"concurrently": "^9.2.1"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{js,json,md}": [
+			"prettier --write"
+		]
+	}
+}

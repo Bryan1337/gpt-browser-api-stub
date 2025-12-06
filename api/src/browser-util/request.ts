@@ -1,12 +1,12 @@
 export type RequestUtil = typeof requestUtil;
 
 const requestUtil = async () => {
-	function delay(ms: number) {
-		return new Promise((resolve) => setTimeout(resolve, ms));
-	}
-
 	async function request(url: string, params: RequestInit) {
-		return await fetch(url, params);
+		const response = await fetch(url, params);
+		if (!response.ok) {
+			throw new Error(`Request failed with ${response.status}: ${response.statusText}.`);
+		}
+		return response;
 	}
 
 	async function jsonRequest(url: string, params: Record<string, unknown>) {
@@ -22,13 +22,24 @@ const requestUtil = async () => {
 		return jsonRequest(url, { ...params, method: "POST" });
 	}
 
+	async function retry<T>(
+		callback: (...args: unknown[]) => Promise<T>,
+		maxAttempts = 1,
+		currentAttempt = 1,
+	): Promise<T> {
+		try {
+			return await callback();
+		} catch (err) {
+			if (currentAttempt >= maxAttempts) {
+				throw err;
+			}
+			return await retry(callback, maxAttempts, currentAttempt + 1);
+		}
+	}
+
 	async function getAccessToken(sessionUrl: string) {
 		const authResponse = await get(`${sessionUrl}?oai-dm=1`);
 
-		if (!authResponse.accessToken) {
-			await delay(2500);
-			return await getAccessToken(sessionUrl);
-		}
 		return authResponse.accessToken;
 	}
 
@@ -37,6 +48,7 @@ const requestUtil = async () => {
 		request,
 		post,
 		get,
+		retry,
 	};
 };
 

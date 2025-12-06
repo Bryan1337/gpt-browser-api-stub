@@ -21,6 +21,7 @@ import { VideoRequestUtil } from "@/browser-util/videoRequest";
 import { HashWasmUtil } from "@/browser-util/hashWasm";
 import { ConversationRequestUtil } from "@/browser-util/conversationRequest";
 import { videoCreditsRequest } from "@/request/get/videoCredits";
+import { getLatestVPNVersionPath } from "@/util/vpn";
 
 export interface GPTBoyUtils {
 	time: TimeUtil;
@@ -60,8 +61,9 @@ declare global {
 }
 
 const server = getServer();
-const hasVPN = !!process.env.VPN_EXTENSION_PATH;
-const vpnArgs = hasVPN ? [`--load-extension=${process.env.VPN_EXTENSION_PATH}`] : [];
+const vpnArgs = !!process.env.VPN_EXTENSION_PATH
+	? [`--load-extension=${getLatestVPNVersionPath(process.env.VPN_EXTENSION_PATH)}`]
+	: [];
 
 puppeteer.use(StealthPlugin());
 

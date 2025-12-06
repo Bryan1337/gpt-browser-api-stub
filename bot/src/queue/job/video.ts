@@ -54,9 +54,10 @@ export async function handleVideoQueueJob(
 
 			if (task.error) {
 				logError(task.error);
+				reactError(sentMessage);
 				reply(sentMessage, task.error);
 
-				return;
+				break;
 			}
 
 			const localFileUrl = await saveExternalFile(

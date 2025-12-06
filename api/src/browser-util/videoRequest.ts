@@ -1,7 +1,7 @@
 export type VideoRequestUtil = typeof videoRequestUtil;
 
 const videoRequestUtil = async () => {
-	const { get, post, getAccessToken } = await window.gptBoyUtils.request();
+	const { get, post, retry, getAccessToken } = await window.gptBoyUtils.request();
 
 	const BASE_URL = "https://sora.chatgpt.com";
 
@@ -13,7 +13,11 @@ const videoRequestUtil = async () => {
 		PENDING = `${BASE_URL}/backend/nf/pending`,
 	}
 
-	const accessToken = await getAccessToken(Url.SESSION);
+	const maxAccessTokenAttempts = 5;
+	const accessToken = await retry(
+		async () => await getAccessToken(Url.SESSION),
+		maxAccessTokenAttempts,
+	);
 
 	function getVideoBodyParams(prompt: string) {
 		return {
@@ -40,7 +44,7 @@ const videoRequestUtil = async () => {
 	async function videoUsageRequest(): Promise<SoraResponse.Usage> {
 		return get(Url.USAGE, {
 			headers: {
-				Authorization: `Bearer ${accessToken}`,
+				"Authorization": `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
 			},
 		});
@@ -49,7 +53,7 @@ const videoRequestUtil = async () => {
 	async function videoDraftRequest(): Promise<SoraResponse.Drafts> {
 		return get(Url.VIDEO_DRAFTS, {
 			headers: {
-				Authorization: `Bearer ${accessToken}`,
+				"Authorization": `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
 			},
 		});
@@ -58,7 +62,7 @@ const videoRequestUtil = async () => {
 	async function videoPendingRequest(): Promise<SoraResponse.Pending> {
 		return get(Url.PENDING, {
 			headers: {
-				Authorization: `Bearer ${accessToken}`,
+				"Authorization": `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
 			},
 		});
@@ -68,7 +72,7 @@ const videoRequestUtil = async () => {
 		const body = getVideoBodyParams(prompt);
 		return post(Url.CREATE, {
 			headers: {
-				Authorization: `Bearer ${accessToken}`,
+				"Authorization": `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(body),

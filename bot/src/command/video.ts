@@ -6,10 +6,12 @@ import { getBlocklist } from "@/data_handlers/sora_ai/getBlocklist";
 export const videoCommand = async (data: CommandHandleData) => {
 	const { message } = data;
 
-	const { remote } = message.id;
+	const contact = await message.getContact();
+
+	const { user } = contact.id;
 
 	const blocklist = getBlocklist();
-	const blockData = blocklist.find((block) => block.id === remote);
+	const blockData = blocklist.find((block) => block.id === user);
 
 	if (blockData) {
 		reply(

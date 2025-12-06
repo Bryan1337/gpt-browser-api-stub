@@ -8,10 +8,9 @@ export async function draftVideoRequest(request: Request, response: Response) {
 
 		logInfo("Received draft video command", taskId);
 
-		const draftResponse = await request.pages.soraPage.evaluate(
-			getVideoDraftResponse,
-			{ body: { taskId } }
-		);
+		const draftResponse = await request.pages.soraPage.evaluate(getVideoDraftResponse, {
+			body: { taskId },
+		});
 
 		response.json(draftResponse);
 	} catch (error) {
